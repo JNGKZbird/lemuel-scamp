@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, PointerEvent as ReactPointerEvent } from "react";
 import { getPhase, solarAltitude } from "../pet/solar.ts";
-import type { PhaseId } from "../pet/solar.ts";
-import { seasonLabel } from "../pet/season.ts";
+import { seasonId } from "../pet/season.ts";
+import {
+  PHASE_MESSAGE_KEYS,
+  SEASON_MESSAGE_KEYS,
+  localizeGlobeError,
+  useI18n,
+} from "../i18n";
 import { GlobeRenderer } from "./GlobeRenderer.ts";
 import {
   DEFAULT_GLOBE_PALETTE,
@@ -28,17 +33,6 @@ type Props = {
   moonSizePx?: number;
   moonDarkLevel?: number;
   resetToken?: number;
-};
-
-const PHASE_LABELS: Record<PhaseId, string> = {
-  lateNight: "凌晨",
-  dawn: "清晨",
-  day: "白天",
-  noon: "中午",
-  evening: "傍晚",
-  night: "晚上",
-  polarActive: "极地活跃",
-  polarQuiet: "极地安静",
 };
 
 function formatCoords(lat: number, lon: number): string {
@@ -87,6 +81,7 @@ export default function GlobeView({
   moonDarkLevel = 0.2,
   resetToken = 0,
 }: Props) {
+  const { lang, t } = useI18n();
   const palette = GLOBE_PALETTES[paletteId];
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -110,7 +105,7 @@ export default function GlobeView({
   const [locationDraft, setLocationDraft] = useState<{
     lat: string;
     lon: string;
-    error: string | null;
+    error: boolean;
   } | null>(null);
   const [locationAnchor, setLocationAnchor] = useState<{
     x: number;
@@ -209,13 +204,13 @@ export default function GlobeView({
     const altitude = solarAltitude(date, lat, lon);
     const phaseLabel =
       phaseInfo.solar.polar === "day"
-        ? "极昼"
+        ? t("globe.polarDay")
         : phaseInfo.solar.polar === "night"
-          ? "极夜"
-          : PHASE_LABELS[phaseInfo.phase];
-    const season = seasonLabel(date, lat);
+          ? t("globe.polarNight")
+          : t(PHASE_MESSAGE_KEYS[phaseInfo.phase]);
+    const season = t(SEASON_MESSAGE_KEYS[seasonId(date, lat)]);
     return { phaseLabel, altitude, season };
-  }, [date, lat, lon]);
+  }, [date, lat, lon, t]);
 
   useEffect(() => {
     return () => {
@@ -310,13 +305,13 @@ export default function GlobeView({
     setLocationDraft({
       lat: lat.toFixed(4),
       lon: lon.toFixed(4),
-      error: null,
+      error: false,
     });
   };
 
   const updateLocationDraft = (field: "lat" | "lon", value: string) => {
     setLocationDraft((draft) =>
-      draft ? { ...draft, [field]: value, error: null } : draft,
+      draft ? { ...draft, [field]: value, error: false } : draft,
     );
   };
 
@@ -335,10 +330,7 @@ export default function GlobeView({
       nextLon < -180 ||
       nextLon > 180
     ) {
-      setLocationDraft({
-        ...locationDraft,
-        error: "请输入有效纬度（-90~90）和经度（-180~180）。",
-      });
+      setLocationDraft({ ...locationDraft, error: true });
       return;
     }
     onLocationChange?.(nextLat, nextLon);
@@ -432,8 +424,8 @@ export default function GlobeView({
         role="img"
         aria-label={
           onLocationChange
-            ? "虚拟地球，可拖动旋转；点击定位点可修改经纬度"
-            : "虚拟地球，可拖动旋转"
+            ? t("globe.canvasAriaEdit")
+            : t("globe.canvasAria")
         }
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -445,15 +437,24 @@ export default function GlobeView({
       />
 
       <div className="globe-hud globe-hud--place">
-        <span className="globe-hud__name">{isDefault ? "北京" : "自定义位置"}</span>
+        <span className="globe-hud__name">
+          {isDefault ? t("globe.beijing") : t("globe.custom")}
+        </span>
         <span className="globe-hud__coords">{formatCoords(lat, lon)}</span>
       </div>
 
       <div className="globe-hud globe-hud--sun">
         <span className="globe-hud__phase">
-          {info.phaseLabel} · {info.season}
+          {t("globe.phaseSeason", {
+            phase: info.phaseLabel,
+            season: info.season,
+          })}
         </span>
-        <span className="globe-hud__alt">太阳高度 {formatAltitude(info.altitude)}</span>
+        <span className="globe-hud__alt">
+          {t("globe.altitude", {
+            altitude: formatAltitude(info.altitude),
+          })}
+        </span>
       </div>
 
       {marsLabel ? (
@@ -468,18 +469,18 @@ export default function GlobeView({
           role="status"
         >
           <span className="globe-mars-label__dot" aria-hidden="true" />
-          荧惑
+          {t("globe.mars")}
         </div>
       ) : null}
 
       {hasDragged ? (
         <button type="button" className="globe-reset" onClick={resetView}>
           <ResetIcon />
-          <span>回到我的位置</span>
+          <span>{t("globe.back")}</span>
         </button>
       ) : (
         <span className="globe-hint" aria-hidden="true">
-          {onLocationChange ? "拖动旋转 · 点击定位点改坐标" : "拖动旋转"}
+          {onLocationChange ? t("globe.hintEdit") : t("globe.hint")}
         </span>
       )}
 
@@ -499,22 +500,22 @@ export default function GlobeView({
             className="globe-location-card"
             style={{ transform: editorTransform }}
             role="dialog"
-            aria-label="修改经纬度位置"
+            aria-label={t("globe.editorAria")}
             onSubmit={submitLocation}
           >
             <div className="globe-location-card__head">
-              <span>坐标位置</span>
+              <span>{t("globe.coordsTitle")}</span>
               <button
                 type="button"
                 className="globe-location-card__close"
-                aria-label="关闭"
+                aria-label={t("globe.close")}
                 onClick={closeLocationEditor}
               >
                 ×
               </button>
             </div>
             <label className="globe-location-field">
-              <span>纬度</span>
+              <span>{t("globe.lat")}</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -529,7 +530,7 @@ export default function GlobeView({
               />
             </label>
             <label className="globe-location-field">
-              <span>经度</span>
+              <span>{t("globe.lon")}</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -543,11 +544,11 @@ export default function GlobeView({
               />
             </label>
             <p className="globe-location-card__hint">
-              北纬/东经为正，南纬/西经为负；会同步到桌宠位置。
+              {t("globe.coordsHint")}
             </p>
             {locationDraft.error ? (
               <p className="globe-location-card__error">
-                {locationDraft.error}
+                {t("globe.coordsError")}
               </p>
             ) : null}
             <div className="globe-location-card__actions">
@@ -555,10 +556,10 @@ export default function GlobeView({
                 type="button"
                 onClick={closeLocationEditor}
               >
-                取消
+                {t("globe.cancel")}
               </button>
               <button type="submit" className="is-primary">
-                确定
+                {t("globe.confirm")}
               </button>
             </div>
           </form>
@@ -567,9 +568,9 @@ export default function GlobeView({
 
       {fallback ? (
         <div className="globe-fallback" role="status">
-          {fallback}
+          {localizeGlobeError(fallback, lang)}
           <br />
-          请刷新或换一个支持 WebGL 的环境。
+          {t("globe.fallbackHint")}
         </div>
       ) : null}
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 import { load_model, SpineWebGLRenderer } from "../spine38/webgl-renderer";
@@ -24,6 +24,7 @@ import {
   getConsoleMaterial,
   getConsoleTheme,
   getGear,
+  getFrameRate,
   getInteractionIceGlide,
   getInteractionOutline,
   getLocation,
@@ -33,6 +34,7 @@ import {
   reloadSettingsFromDisk,
   setCharacterVisible,
   subscribeCharacterVisible,
+  subscribeFrameRate,
   subscribeGear,
   subscribeInteractionIceGlide,
   subscribeInteractionOutline,
@@ -40,7 +42,9 @@ import {
   subscribeMode,
   subscribeVirtualTime,
 } from "../settings/store";
+import type { FrameRate } from "../settings/store";
 import { ensureConsole } from "../console/openConsole";
+import { useI18n } from "../i18n";
 import "./overlay.css";
 
 type MenuState = { key: CharKey; x: number; y: number } | null;
@@ -51,6 +55,13 @@ const CANVAS_H = 280;
 const MARGIN_X = 0;
 const MARGIN_Y = 0;
 const MENU_W = 150;
+
+// 帧率上限换算成最小帧间隔；unlimited 返回 0 = 不跳帧，rAF 原速（跟随屏幕刷新率）。
+// 减 1.5ms 的余量：60Hz 屏幕上 rAF 间隔约 16.7ms，不能被误判成“还没到点”。
+function frameMinMs(rate: FrameRate): number {
+  if (rate === "unlimited") return 0;
+  return 1000 / Number(rate) - 1.5;
+}
 const MENU_H = 132;
 const NEAR_PX = 80;
 
@@ -59,6 +70,7 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 export default function OverlayPoc() {
+  const { t } = useI18n();
   const stageRef = useRef<HTMLDivElement>(null);
   const angelCanvasRef = useRef<HTMLCanvasElement>(null);
   const angel2CanvasRef = useRef<HTMLCanvasElement>(null);
@@ -72,6 +84,8 @@ export default function OverlayPoc() {
   const menuRef = useRef<MenuState>(null);
   const boxesDirtyRef = useRef(true);
   const controlledRef = useRef<CharKey | null>(null);
+  // 当前帧率上限换算出的最小帧间隔（ms）；0 = 不限制。
+  const frameMinMsRef = useRef<number>(frameMinMs("60"));
   const keysRef = useRef<Set<string>>(new Set());
   const promptRef = useRef<HTMLDivElement>(null);
   const promptTargetRef = useRef<{ key: CharKey; x: number; y: number } | null>(
@@ -90,6 +104,15 @@ export default function OverlayPoc() {
   const [menu, setMenu] = useState<MenuState>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const title = t("app.overlayWindowTitle");
+    document.title = title;
+    if (!isTauri()) return;
+    getCurrentWindow()
+      .setTitle(title)
+      .catch((err) => console.error("[overlay] title", err));
+  }, [t]);
 
   const setMenuSafe = (next: MenuState) => {
     menuRef.current = next;
@@ -152,6 +175,7 @@ export default function OverlayPoc() {
         visibleAngel2,
         outline,
         iceGlide,
+        frameRate,
       ] = await Promise.all([
         getGear("angel"),
         getGear("angel2"),
@@ -162,8 +186,10 @@ export default function OverlayPoc() {
         getCharacterVisible("angel2"),
         getInteractionOutline(),
         getInteractionIceGlide(),
+        getFrameRate(),
       ]);
       if (disposed) return;
+      frameMinMsRef.current = frameMinMs(frameRate);
 
       const shared: SharedPetSettings = {
         mode,
@@ -396,6 +422,11 @@ export default function OverlayPoc() {
         subscribeInteractionIceGlide((enabled) => {
           controllersRef.current.angel?.setIceGlide(enabled);
           controllersRef.current.angel2?.setIceGlide(enabled);
+        }),
+      );
+      await unsubscribe(() =>
+        subscribeFrameRate((next) => {
+          frameMinMsRef.current = frameMinMs(next);
         }),
       );
       await unsubscribe(() =>
@@ -757,55 +788,72 @@ export default function OverlayPoc() {
 
       setReady(true);
       raiseOverlay();
-      await invoke("set_hit_boxes", { boxes: collectBoxes() }).catch(() => {});
+      const initialBoxes = collectBoxes();
+      await invoke("set_hit_boxes", { boxes: initialBoxes }).catch(() => {});
 
       let last = performance.now();
+      let lastRender = last;
       const tick = (now: number) => {
-        if (disposed) return;
-        const dt = Math.min(0.05, (now - last) / 1000);
-        last = now;
-        const controlledKey = controlledRef.current;
-        for (const key of keys) {
-          const controller = controllersRef.current[key];
-          if (!controller) continue;
-          if (key === controlledKey && !controller.isDragging) {
-            const dx =
-              (keysRef.current.has("d") ? 1 : 0) -
-              (keysRef.current.has("a") ? 1 : 0);
-            const dy =
-              (keysRef.current.has("s") ? 1 : 0) -
-              (keysRef.current.has("w") ? 1 : 0);
-            // 过渡中 isInteractive=false，这里会自动变成空操作。
-            controller.manualMove(dx, dy, dt, keysRef.current.has("shift"));
+        try {
+          if (disposed) return;
+          // 按设置夹帧率：跳过的这一帧不推进物理（last 不动），dt 自然累积到下一帧。
+          const minMs = frameMinMsRef.current;
+          if (minMs > 0 && now - lastRender < minMs) {
+            raf = requestAnimationFrame(tick);
+            return;
           }
-          controller.step(now, dt);
-          // 实际位移速度（px/s），给窗口区域 padding 用；平滑一下避免抖动。
-          const p = controller.pos;
-          if (!posReady[key]) {
-            posReady[key] = true;
+          lastRender = now;
+          const rawDt = (now - last) / 1000;
+          // 首帧 rAF 时间戳可能早于建循环时取的 performance.now()，dt 会为负；
+          // 夹到 0 避免物理拿到负步长。
+          const dt = Math.min(0.05, Math.max(0, rawDt));
+          last = now;
+          const controlledKey = controlledRef.current;
+          for (const key of keys) {
+            const controller = controllersRef.current[key];
+            if (!controller) continue;
+            if (key === controlledKey && !controller.isDragging) {
+              const dx =
+                (keysRef.current.has("d") ? 1 : 0) -
+                (keysRef.current.has("a") ? 1 : 0);
+              const dy =
+                (keysRef.current.has("s") ? 1 : 0) -
+                (keysRef.current.has("w") ? 1 : 0);
+              // 过渡中 isInteractive=false，这里会自动变成空操作。
+              controller.manualMove(dx, dy, dt, keysRef.current.has("shift"));
+            }
+            controller.step(now, dt);
+            // 实际位移速度（px/s），给窗口区域 padding 用；平滑一下避免抖动。
+            const p = controller.pos;
+            if (!posReady[key]) {
+              posReady[key] = true;
+              lastPos[key] = { x: p.x, y: p.y };
+            }
+            const inst =
+              Math.hypot(p.x - lastPos[key].x, p.y - lastPos[key].y) /
+              Math.max(1e-3, dt);
+            speeds[key] = speeds[key] * 0.6 + inst * 0.4;
             lastPos[key] = { x: p.x, y: p.y };
+            if (!controller.isVisible) {
+              // 退场结束（reveal 到 0）后才真正撤掉 wrapper。
+              wrappers[key].style.display = "none";
+              continue;
+            }
+            if (wrappers[key].style.display === "none") {
+              wrappers[key].style.display = "";
+            }
+            wrappers[key].style.transform = `translate3d(${Math.round(
+              controller.pos.x,
+            )}px, ${Math.round(controller.pos.y)}px, 0)`;
+            controller.draw();
           }
-          const inst =
-            Math.hypot(p.x - lastPos[key].x, p.y - lastPos[key].y) /
-            Math.max(1e-3, dt);
-          speeds[key] = speeds[key] * 0.6 + inst * 0.4;
-          lastPos[key] = { x: p.x, y: p.y };
-          if (!controller.isVisible) {
-            // 退场结束（reveal 到 0）后才真正撤掉 wrapper。
-            wrappers[key].style.display = "none";
-            continue;
-          }
-          if (wrappers[key].style.display === "none") {
-            wrappers[key].style.display = "";
-          }
-          wrappers[key].style.transform = `translate3d(${Math.round(
-            controller.pos.x,
-          )}px, ${Math.round(controller.pos.y)}px, 0)`;
-          controller.draw();
+          updateFPrompt();
+          pushBoxes();
+          raf = requestAnimationFrame(tick);
+        } catch (err) {
+          console.error("[overlay] tick", err);
+          throw err;
         }
-        updateFPrompt();
-        pushBoxes();
-        raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
     })().catch((err) => {
@@ -843,26 +891,33 @@ export default function OverlayPoc() {
         <div
           className="overlay-menu"
           style={{ left: menu.x, top: menu.y }}
+          role="menu"
+          aria-label={t("overlay.menuAria")}
           onPointerDown={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.preventDefault()}
         >
           <button
             type="button"
+            role="menuitem"
             onClick={() => actionsRef.current.openConsole()}
           >
-            打开主控台
+            {t("overlay.openConsole")}
           </button>
           <button
             type="button"
+            role="menuitem"
             onClick={() => actionsRef.current.interact(menu.key)}
           >
-            {controlled === menu.key ? "退出互动" : "互动"}
+            {controlled === menu.key
+              ? t("overlay.exitInteract")
+              : t("overlay.interact")}
           </button>
           <button
             type="button"
+            role="menuitem"
             onClick={() => actionsRef.current.hide(menu.key)}
           >
-            隐藏
+            {t("overlay.hide")}
           </button>
         </div>
       ) : null}

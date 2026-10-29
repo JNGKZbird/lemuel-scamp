@@ -10,8 +10,8 @@ import type { PhaseId } from "../pet/solar.ts";
 import {
   buildPhaseTimeline,
   PHASE_COLORS,
-  PHASE_LABELS,
 } from "../pet/phase-timeline.ts";
+import { PHASE_MESSAGE_KEYS, useI18n } from "../i18n";
 import {
   dateAtParts,
   datePartsFromDate,
@@ -76,6 +76,7 @@ export default function PhaseRail({
   virtualMinute,
   onVirtualMinuteChange,
 }: Props) {
+  const { t } = useI18n();
   const [now, setNow] = useState(() => new Date());
   const [location, setLocation] = useState<GeoLocation>(BEIJING);
   const [barWidth, setBarWidth] = useState(0);
@@ -202,8 +203,10 @@ export default function PhaseRail({
   const displayPct = (displayMinute / 1440) * 100;
   const livePct = (liveMinute / 1440) * 100;
   const bubbleTime = isPreview ? sliderLabel(displayMinute) : clock(now);
-  const bubblePhase = PHASE_LABELS[displayInfo.phase];
-  const phaseSummary = phases.map((phase) => PHASE_LABELS[phase]).join("、");
+  const bubblePhase = t(PHASE_MESSAGE_KEYS[displayInfo.phase]);
+  const phaseSummary = phases
+    .map((phase) => t(PHASE_MESSAGE_KEYS[phase]))
+    .join(t("list.separator"));
 
   const rawCenter = barWidth > 0 ? (displayMinute / 1440) * barWidth : 0;
   const half = BUBBLE_WIDTH / 2;
@@ -321,13 +324,15 @@ export default function PhaseRail({
     virtualDate !== null || virtualMinute !== null || resetAnim !== null;
 
   return (
-    <section className="console-phase-rail" aria-label="日轨">
+    <section className="console-phase-rail" aria-label={t("phase.railAria")}>
       <div className="console-phase-rail__head">
         <div>
-          <h3>日轨</h3>
+          <h3>{t("phase.railTitle")}</h3>
           <p>
-            {isPreview ? "虚拟" : "今日"} ·{" "}
-            {location.isDefault ? "默认北京" : "按当前坐标"}
+            {isPreview ? t("phase.virtual") : t("phase.today")} ·{" "}
+            {location.isDefault
+              ? t("phase.defaultBeijing")
+              : t("phase.currentCoords")}
           </p>
         </div>
         <div className="console-phase-rail__controls">
@@ -339,7 +344,7 @@ export default function PhaseRail({
             <input
               className="console-phase-rail__date-input"
               type="text"
-              aria-label="虚拟日期，公历；例如 2026-09-21；9=9日，9月=九月"
+              aria-label={t("phase.dateAria")}
               autoComplete="off"
               spellCheck={false}
               value={dateDraft ?? dateKey}
@@ -370,7 +375,7 @@ export default function PhaseRail({
             <input
               className="console-phase-rail__time-input"
               type="text"
-              aria-label="虚拟时间，精确到分钟"
+              aria-label={t("phase.timeAria")}
               autoComplete="off"
               spellCheck={false}
               value={draft ?? sliderLabel(displayMinute)}
@@ -402,18 +407,24 @@ export default function PhaseRail({
           </span>
           {!resettable ? (
             <p className="console-phase-rail__now">
-              实时 · {PHASE_LABELS[liveInfo.phase]}
+              {t("phase.live", {
+                phase: t(PHASE_MESSAGE_KEYS[liveInfo.phase]),
+              })}
             </p>
           ) : (
             <div className="console-phase-rail__preview">
-              <span>{resetAnim !== null ? "归位中" : "虚拟"}</span>
+              <span>
+                {resetAnim !== null
+                  ? t("phase.resetting")
+                  : t("phase.virtual")}
+              </span>
               <button
                 type="button"
                 className="console-phase-rail__reset"
                 onClick={resetToLive}
                 disabled={resetAnim !== null}
               >
-                重置
+                {t("phase.reset")}
               </button>
             </div>
           )}
@@ -434,13 +445,15 @@ export default function PhaseRail({
         className="console-phase-rail__bar"
         role="slider"
         tabIndex={0}
-        aria-label="虚拟时间"
+        aria-label={t("phase.sliderAria")}
         aria-valuemin={0}
         aria-valuemax={LAST_MINUTE}
         aria-valuenow={selectedMinute}
-        aria-valuetext={`${bubbleTime} ${bubblePhase}${
-          isPreview ? "，虚拟" : "，实时"
-        }`}
+        aria-valuetext={t("phase.sliderValue", {
+          time: bubbleTime,
+          phase: bubblePhase,
+          state: isPreview ? t("phase.virtualState") : t("phase.liveState"),
+        })}
         aria-orientation="horizontal"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -451,7 +464,7 @@ export default function PhaseRail({
         <div
           className="console-phase-rail__segments"
           role="img"
-          aria-label={`当日时段：${phaseSummary}`}
+          aria-label={t("phase.blocksAria", { phases: phaseSummary })}
         >
           {timeline.map((block) => (
             <span
@@ -462,7 +475,7 @@ export default function PhaseRail({
                 width: `${((block.end - block.start) / 1440) * 100}%`,
                 background: PHASE_COLORS[block.phase],
               }}
-              title={`${PHASE_LABELS[block.phase]} ${timeLabel(
+              title={`${t(PHASE_MESSAGE_KEYS[block.phase])} ${timeLabel(
                 block.start,
               )}–${timeLabel(block.end)}`}
             />
@@ -472,7 +485,7 @@ export default function PhaseRail({
           <span
             className="console-phase-rail__now-line"
             style={{ left: `${livePct}%` }}
-            title="现在"
+            title={t("phase.now")}
             aria-hidden="true"
           />
         ) : null}
@@ -499,7 +512,7 @@ export default function PhaseRail({
               style={{ background: PHASE_COLORS[phase] }}
               aria-hidden="true"
             />
-            {PHASE_LABELS[phase]}
+            {t(PHASE_MESSAGE_KEYS[phase])}
           </span>
         ))}
       </div>

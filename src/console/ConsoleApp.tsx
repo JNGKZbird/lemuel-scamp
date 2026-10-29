@@ -17,32 +17,19 @@ import {
   type ThicknessLevel,
 } from "./glass/config";
 import { setVirtualTime } from "../settings/store";
-import type { ConsoleMaterial, PetMode } from "../settings/store";
+import type {
+  AppLanguage,
+  ConsoleMaterial,
+  FrameRate,
+  PetMode,
+} from "../settings/store";
+import { useI18n } from "../i18n";
 import "./ConsoleApp.css";
 
-const CLASSIC_THEME_OPTIONS: Array<{ value: ThemeId; label: string }> = [
-  { value: "white", label: "白" },
-  { value: "black", label: "黑" },
-];
-
-const LIQUID_THEME_OPTIONS: Array<{ value: ThemeId; label: string }> = [
-  { value: "white", label: "白瓷" },
-  { value: "black", label: "黑曜" },
-];
-
-const MATERIAL_OPTIONS: Array<{ value: ConsoleMaterial; label: string }> = [
-  { value: "classic", label: "经典" },
-  { value: "liquid", label: "液态玻璃" },
-];
-
-const MODE_OPTIONS: Array<{ value: PetMode; label: string }> = [
-  { value: "gear", label: "行为档位" },
-  { value: "time", label: "虚拟地球" },
-];
-
-const OUTLINE_OPTIONS: Array<{ value: "on" | "off"; label: string }> = [
-  { value: "on", label: "开启" },
-  { value: "off", label: "关闭" },
+// 语言名称使用各语言的自称，不随界面语言翻译。
+const LANGUAGE_OPTIONS: Array<{ value: AppLanguage; label: string }> = [
+  { value: "zh-CN", label: "简体中文" },
+  { value: "en", label: "English" },
 ];
 
 const GlobePage = lazy(() => import("./GlobePage"));
@@ -53,6 +40,26 @@ const GEAR_BLUE = "#3b82f6";
 const GEAR_INK = { white: "#2563eb", black: "#60a5fa" } as const;
 
 type ConsolePage = "general" | "globe";
+
+// 语言切换时做平移动画的块。行内/区间元素会因中英文长度不同而移动：
+// 日轨表头里的日期时间是被右侧“实时 · 时段 / 虚拟 [重置]”文字挤着走的，
+// 单独列出来做 FLIP。
+const LAYOUT_BLOCK_SELECTOR = [
+  ".console-topbar h1",
+  ".console-nav__item",
+  ".console-settings__head",
+  ".console-license",
+  ".console-rows > *",
+  ".console-phase-rail__clock",
+].join(", ");
+
+type LayoutBlock = {
+  el: HTMLElement;
+  left: number;
+  top: number;
+  /** 最近的、也在测量列表里的祖先；子块只补相对它的位移。 */
+  ancestor: LayoutBlock | null;
+};
 
 type ViewTransitionDocument = Document & {
   startViewTransition?: (callback: () => void | Promise<void>) => {
@@ -90,6 +97,7 @@ function NavIcon({ name }: { name: ConsolePage }) {
 }
 
 export default function ConsoleApp() {
+  const { lang, t, setLanguage } = useI18n();
   const [config] = useState(() => parsePreviewConfig(location.search));
   const [desktop] = useState(() => isTauri());
   const [theme, setTheme] = useState<ThemeId>(config.theme);
@@ -118,14 +126,22 @@ export default function ConsoleApp() {
     visible,
     outline,
     iceGlide,
+    frameRate,
     ready,
     setCharGear,
     setCharVisible,
     setPetMode,
     setInteractionOutline,
     setInteractionIceGlide,
+    setFrameRate,
   } = useGearSettings();
   const globeOverride = mode === "time";
+  const frameRateOptions: Array<{ value: FrameRate; label: string }> = [
+    { value: "30", label: "30" },
+    { value: "60", label: "60" },
+    { value: "120", label: "120" },
+    { value: "unlimited", label: t("frameRate.unlimited") },
+  ];
 
   useEffect(() => {
     if (!desktop) return;
@@ -150,6 +166,14 @@ export default function ConsoleApp() {
     if (desktop) winRef.current = getCurrentWindow();
   }, [desktop]);
 
+  useEffect(() => {
+    const title = t("app.consoleWindowTitle");
+    document.title = title;
+    winRef.current?.setTitle(title).catch((err) => {
+      console.error("[console] title", err);
+    });
+  }, [desktop, lang, t]);
+
   const transitionTheme = (update: () => void) => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       update();
@@ -173,6 +197,85 @@ export default function ConsoleApp() {
       transitioningRef.current = false;
       update();
     }
+  };
+
+  // 语言切换：英文信息密度低，说明会折成两行把下方内容推下去；顶部栏的标题与
+  // 导航项也会因中英文长度不同而左右移动。这里用 FLIP：先量旧位置，切语言后让
+  // 每块从旧位置平移到新位置，不做淡入淡出。
+  // 不用 ::view-transition 的整页快照——快照里包着“移动后”的画面，位移会被烘进
+  // 静态图里，反而看不到移动；而且行高变化会让快照被拉伸。
+  const measureLayoutBlocks = () => {
+    const root = document.querySelector<HTMLElement>(".console-root");
+    if (!root) return [];
+    const blocks = root.querySelectorAll<HTMLElement>(LAYOUT_BLOCK_SELECTOR);
+    const measured = new Map<HTMLElement, LayoutBlock>();
+    const result: LayoutBlock[] = [];
+    for (const el of blocks) {
+      // 最近的、本身也在动画面板里的祖先：父块的 transform 会带着子块一起走，
+      // 子块只需补“相对父块”的那一段位移（见 animateLayoutShift）。
+      let ancestor: LayoutBlock | null = null;
+      for (let node = el.parentElement; node; node = node.parentElement) {
+        const hit = measured.get(node);
+        if (hit) {
+          ancestor = hit;
+          break;
+        }
+      }
+      const rect = el.getBoundingClientRect();
+      const block: LayoutBlock = {
+        el,
+        left: rect.left,
+        top: rect.top,
+        ancestor,
+      };
+      measured.set(el, block);
+      result.push(block);
+    }
+    return result;
+  };
+
+  const animateLayoutShift = (before: LayoutBlock[]) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // 先把所有块的新位置量完再起动画：动画一旦起跑就会立刻把 transform 作用到
+    // 元素上，后量的子块会读到被祖先 transform 拖走的坐标，多算一段位移。
+    const full = new Map<HTMLElement, { dx: number; dy: number }>();
+    for (const block of before) {
+      if (!block.el.isConnected) {
+        full.set(block.el, { dx: 0, dy: 0 });
+        continue;
+      }
+      const rect = block.el.getBoundingClientRect();
+      full.set(block.el, { dx: block.left - rect.left, dy: block.top - rect.top });
+    }
+    for (const block of before) {
+      const own = full.get(block.el);
+      if (!own) continue;
+      // 父块和子块若各按自己的绝对位移做动画，父块的 translate 会再带子块走一
+      // 遍，叠加成两倍；减掉祖先的位移后，子块只负责容器内部那一段。
+      const base = block.ancestor ? full.get(block.ancestor.el) : undefined;
+      const dx = own.dx - (base?.dx ?? 0);
+      const dy = own.dy - (base?.dy ?? 0);
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
+      // 从旧位置沿 transform 滑回新位置。用 Web Animations 而不是 inline
+      // transition——动画结束不需要清理内联样式，连点也会自动接管当前视觉位置
+      // （下一次测量读到的就是动画中的位置）。
+      block.el.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px)` },
+          { transform: "translate(0px, 0px)" },
+        ],
+        { duration: 280, easing: "cubic-bezier(0.2, 0, 0.2, 1)" },
+      );
+    }
+  };
+
+  const applyLanguage = (next: AppLanguage) => {
+    if (next === lang) return;
+    const before = measureLayoutBlocks();
+    flushSync(() => {
+      void setLanguage(next);
+    });
+    animateLayoutShift(before);
   };
 
   const applyTheme = (next: ThemeId) => {
@@ -280,8 +383,28 @@ export default function ConsoleApp() {
     "--preview-h": `${config.height}px`,
     "--edge-band": `${thicknessConfig.edgeBand}px`,
   } as CSSProperties;
-  const themeOptions =
-    material === "liquid" ? LIQUID_THEME_OPTIONS : CLASSIC_THEME_OPTIONS;
+  const themeOptions: Array<{ value: ThemeId; label: string }> = [
+    {
+      value: "white",
+      label: material === "liquid" ? t("theme.porcelain") : t("theme.white"),
+    },
+    {
+      value: "black",
+      label: material === "liquid" ? t("theme.obsidian") : t("theme.black"),
+    },
+  ];
+  const materialOptions: Array<{ value: ConsoleMaterial; label: string }> = [
+    { value: "classic", label: t("material.classic") },
+    { value: "liquid", label: t("material.liquid") },
+  ];
+  const modeOptions: Array<{ value: PetMode; label: string }> = [
+    { value: "gear", label: t("mode.gear") },
+    { value: "time", label: t("mode.globe") },
+  ];
+  const toggleOptions: Array<{ value: "on" | "off"; label: string }> = [
+    { value: "on", label: t("toggle.on") },
+    { value: "off", label: t("toggle.off") },
+  ];
 
   return (
     <div
@@ -289,9 +412,10 @@ export default function ConsoleApp() {
       style={style}
       data-theme={theme}
       data-material={material}
+      data-lang={lang}
       data-thick={DEFAULT_THICKNESS}
       data-renderer={rendererState}
-      aria-label="总控台"
+      aria-label={t("app.consoleTitle")}
     >
       <div className="console-shell" ref={shellRef}>
         <canvas ref={canvasRef} className="glass-canvas" aria-hidden="true" />
@@ -301,9 +425,12 @@ export default function ConsoleApp() {
             className="console-drag-region"
             data-tauri-drag-region={maximized ? undefined : true}
           >
-            <h1>总控台</h1>
+            <h1>
+              {t("app.consoleTitle")}
+              <span className="console-preview-badge">{t("app.previewBadge")}</span>
+            </h1>
           </div>
-          <nav className="console-nav" aria-label="总控台导航">
+          <nav className="console-nav" aria-label={t("nav.aria")}>
             <button
               type="button"
               className={`console-nav__item${page === "general" ? " is-active" : ""}`}
@@ -311,7 +438,7 @@ export default function ConsoleApp() {
               onClick={() => setPage("general")}
             >
               <NavIcon name="general" />
-              <span>通用设置</span>
+              <span>{t("nav.general")}</span>
             </button>
             <button
               type="button"
@@ -320,15 +447,17 @@ export default function ConsoleApp() {
               onClick={() => setPage("globe")}
             >
               <NavIcon name="globe" />
-              <span>虚拟地球</span>
+              <span>{t("nav.globe")}</span>
             </button>
           </nav>
           <div className="console-window-controls">
             <button
               type="button"
               className="console-window-btn"
-              aria-label="最小化"
-              title={desktop ? "最小化" : "在应用窗口中可用"}
+              aria-label={t("window.minimize")}
+              title={
+                desktop ? t("window.minimize") : t("window.desktopOnly")
+              }
               disabled={!desktop}
               onClick={minimize}
             >
@@ -339,9 +468,15 @@ export default function ConsoleApp() {
             <button
               type="button"
               className="console-window-btn"
-              aria-label={maximized ? "还原" : "最大化"}
+              aria-label={
+                maximized ? t("window.restore") : t("window.maximize")
+              }
               title={
-                desktop ? (maximized ? "还原" : "最大化") : "在应用窗口中可用"
+                desktop
+                  ? maximized
+                    ? t("window.restore")
+                    : t("window.maximize")
+                  : t("window.desktopOnly")
               }
               disabled={!desktop}
               onClick={toggleMaximized}
@@ -357,8 +492,8 @@ export default function ConsoleApp() {
             <button
               type="button"
               className="console-window-btn"
-              aria-label="关闭"
-              title={desktop ? "关闭" : "在应用窗口中可用"}
+              aria-label={t("window.close")}
+              title={desktop ? t("window.close") : t("window.desktopOnly")}
               disabled={!desktop}
               onClick={close}
             >
@@ -375,25 +510,29 @@ export default function ConsoleApp() {
             {page === "general" ? (
               <div className="console-settings">
                 <div className="console-settings__head">
-                  <p className="console-caption">两只桌宠分别设置</p>
+                  <p className="console-caption">{t("settings.caption")}</p>
                   <div className="console-appearance">
                     <div className="console-appearance__row">
-                      <span className="console-appearance__label">底色</span>
+                      <span className="console-appearance__label">
+                        {t("settings.background")}
+                      </span>
                       <SegmentedControl
                         options={themeOptions}
                         value={theme}
                         onChange={applyTheme}
-                        ariaLabel="底色"
+                        ariaLabel={t("settings.background")}
                         className="console-segmented--theme console-segmented--capsule"
                       />
                     </div>
                     <div className="console-appearance__row">
-                      <span className="console-appearance__label">材质</span>
+                      <span className="console-appearance__label">
+                        {t("settings.material")}
+                      </span>
                       <SegmentedControl
-                        options={MATERIAL_OPTIONS}
+                        options={materialOptions}
                         value={material}
                         onChange={applyMaterial}
-                        ariaLabel="材质"
+                        ariaLabel={t("settings.material")}
                         className="console-segmented--theme console-segmented--capsule"
                       />
                     </div>
@@ -403,14 +542,44 @@ export default function ConsoleApp() {
                 <div className="console-rows">
                   <section className="console-row console-row--mode">
                     <div className="console-row__head">
-                      <h2>行为模式</h2>
-                      <p>两只桌宠共用。虚拟地球开启后按当地太阳作息行动，覆盖下方档位。</p>
+                      <h2>{t("settings.language")}</h2>
+                      <p>{t("settings.languageDesc")}</p>
                     </div>
                     <SegmentedControl
-                      options={MODE_OPTIONS}
+                      options={LANGUAGE_OPTIONS}
+                      value={lang}
+                      onChange={applyLanguage}
+                      ariaLabel={t("settings.languageAria")}
+                      className="console-segmented--capsule console-segmented--mode"
+                    />
+                  </section>
+                  <section className="console-row console-row--mode">
+                    <div className="console-row__head">
+                      <h2>{t("settings.frameRate")}</h2>
+                      <p>
+                        {ready
+                          ? t("settings.frameRateDesc")
+                          : t("settings.loading")}
+                      </p>
+                    </div>
+                    <SegmentedControl
+                      options={frameRateOptions}
+                      value={frameRate}
+                      onChange={setFrameRate}
+                      ariaLabel={t("settings.frameRate")}
+                      className="console-segmented--capsule console-segmented--frame"
+                    />
+                  </section>
+                  <section className="console-row console-row--mode">
+                    <div className="console-row__head">
+                      <h2>{t("mode.title")}</h2>
+                      <p>{t("mode.desc")}</p>
+                    </div>
+                    <SegmentedControl
+                      options={modeOptions}
                       value={mode}
                       onChange={setPetMode}
-                      ariaLabel="行为模式"
+                      ariaLabel={t("mode.title")}
                       className="console-segmented--capsule console-segmented--mode"
                     />
                     <div
@@ -429,94 +598,100 @@ export default function ConsoleApp() {
                       </div>
                     </div>
                   </section>
-                  {CHARACTERS.map((character, index) => (
-                    <section
-                      className={`console-row${globeOverride ? " is-locked" : ""}`}
-                      key={character.key}
-                    >
-                      <div className="console-row__head">
-                        <h2>{character.name}</h2>
-                        <p>
-                          {!ready
-                            ? "读取设置…"
-                            : globeOverride
-                              ? "由虚拟地球作息接管"
-                              : "自主行动的活跃程度"}
-                        </p>
-                        <VisibilityToggle
-                          visible={visible[character.key]}
-                          label={`显示${character.name}`}
-                          disabled={!ready}
-                          onChange={(next) =>
-                            setCharVisible(character.key, next)
-                          }
-                        />
-                      </div>
-                      <div className="console-gear-cell">
-                        <GearSlider
-                          label={`${character.name}行为档位`}
-                          value={gears[character.key]}
-                          color={GEAR_BLUE}
-                          inkColor={GEAR_INK[theme === "black" ? "black" : "white"]}
-                          spring={GEAR_SPRING}
-                          disabled={!ready || globeOverride}
-                          onChange={(gear) => setCharGear(character.key, gear)}
-                        />
-                        {index === CHARACTERS.length - 1 ? (
-                          <p className="console-gear-note">
-                            档位只调节奏，活动范围始终是整块屏幕。
+                  {CHARACTERS.map((character, index) => {
+                    const name =
+                      lang === "en" ? character.nameEn : character.name;
+                    return (
+                      <section
+                        className={`console-row${globeOverride ? " is-locked" : ""}`}
+                        key={character.key}
+                      >
+                        <div className="console-row__head">
+                          <h2>{name}</h2>
+                          <p>
+                            {!ready
+                              ? t("settings.loading")
+                              : globeOverride
+                                ? t("pet.locked")
+                                : t("pet.activeHint")}
                           </p>
-                        ) : null}
-                      </div>
-                    </section>
-                  ))}
+                          <VisibilityToggle
+                            visible={visible[character.key]}
+                            label={t("pet.show", { name })}
+                            disabled={!ready}
+                            onChange={(next) =>
+                              setCharVisible(character.key, next)
+                            }
+                          />
+                        </div>
+                        <div className="console-gear-cell">
+                          <GearSlider
+                            label={t("pet.gearAria", { name })}
+                            value={gears[character.key]}
+                            color={GEAR_BLUE}
+                            inkColor={
+                              GEAR_INK[theme === "black" ? "black" : "white"]
+                            }
+                            spring={GEAR_SPRING}
+                            disabled={!ready || globeOverride}
+                            onChange={(gear) =>
+                              setCharGear(character.key, gear)
+                            }
+                          />
+                          {index === CHARACTERS.length - 1 ? (
+                            <p className="console-gear-note">
+                              {t("pet.gearNote")}
+                            </p>
+                          ) : null}
+                        </div>
+                      </section>
+                    );
+                  })}
                   <section className="console-row console-row--outline">
                     <div className="console-row__head">
-                      <h2>互动描边</h2>
+                      <h2>{t("interaction.outline")}</h2>
                       <p>
                         {ready
-                          ? "进入互动模式时，角色外圈显示基建界面同款黄色描边。"
-                          : "读取设置…"}
+                          ? t("interaction.outlineDesc")
+                          : t("settings.loading")}
                       </p>
                     </div>
                     <SegmentedControl
-                      options={OUTLINE_OPTIONS}
+                      options={toggleOptions}
                       value={outline ? "on" : "off"}
                       onChange={(next) => setInteractionOutline(next === "on")}
-                      ariaLabel="互动描边"
+                      ariaLabel={t("interaction.outline")}
                       className="console-segmented--capsule"
                     />
                   </section>
                   <section className="console-row console-row--outline">
                     <div className="console-row__head">
-                      <h2>溜冰惯性</h2>
+                      <h2>{t("interaction.glide")}</h2>
                       <p>
                         {ready
-                          ? "开启后，互动模式里冲刺松手会像溜冰一样长距离滑行；关闭则干脆收住。"
-                          : "读取设置…"}
+                          ? t("interaction.glideDesc")
+                          : t("settings.loading")}
                       </p>
                     </div>
                     <SegmentedControl
-                      options={OUTLINE_OPTIONS}
+                      options={toggleOptions}
                       value={iceGlide ? "on" : "off"}
                       onChange={(next) =>
                         setInteractionIceGlide(next === "on")
                       }
-                      ariaLabel="溜冰惯性"
+                      ariaLabel={t("interaction.glide")}
                       className="console-segmented--capsule"
                     />
                   </section>
                 </div>
-                <p className="console-license">
-                  字体：HarmonyOS Sans（华为）· 许可见仓库 NOTICE.md
-                </p>
+                <p className="console-license">{t("license.font")}</p>
               </div>
             ) : (
               <Suspense
                 fallback={
                   <section
                     className="console-globe-page"
-                    aria-label="虚拟地球"
+                    aria-label={t("globe.pageAria")}
                   />
                 }
               >

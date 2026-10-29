@@ -1,6 +1,7 @@
 import { primaryMonitor } from "@tauri-apps/api/window";
 import { WebviewWindow, getAllWebviewWindows } from "@tauri-apps/api/webviewWindow";
 import type { ConsoleMaterial, ConsoleTheme } from "../settings/store";
+import { getLanguage, translate } from "../i18n";
 
 const FALLBACK_WIDTH = 1066;
 const FALLBACK_HEIGHT = 729;
@@ -40,7 +41,7 @@ async function createConsole(
 
   const consoleWindow = new WebviewWindow("console", {
     url: `/?view=console&theme=${theme}&material=${material}`,
-    title: "Lemuel Scamp · 总控台",
+    title: translate(getLanguage(), "app.consoleWindowTitle"),
     width,
     height,
     center: true,

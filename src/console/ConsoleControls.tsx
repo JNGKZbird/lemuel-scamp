@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
+import { useI18n } from "../i18n";
 
 export type SegmentOption<T extends string | number> = {
   value: T;
@@ -25,6 +26,7 @@ export function VisibilityToggle({
   disabled?: boolean;
   onChange: (visible: boolean) => void;
 }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
@@ -39,7 +41,7 @@ export function VisibilityToggle({
         <span className="console-visibility__thumb" />
       </span>
       <span className="console-visibility__label">
-        {visible ? "显示" : "隐藏"}
+        {visible ? t("pet.visible") : t("pet.hidden")}
       </span>
     </button>
   );

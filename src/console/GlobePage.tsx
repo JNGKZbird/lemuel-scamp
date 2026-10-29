@@ -7,6 +7,7 @@ import {
   parseIsoDate,
 } from "../pet/calendar.ts";
 import type { GeoLocation } from "../settings/store";
+import { useI18n } from "../i18n";
 
 const BEIJING: GeoLocation = {
   lat: 39.9042,
@@ -39,6 +40,7 @@ export default function GlobePage({
   virtualMinute,
   onVirtualMinuteChange,
 }: Props) {
+  const { t } = useI18n();
   const [now, setNow] = useState(() => new Date());
   const [location, setLocation] = useState<GeoLocation>(BEIJING);
 
@@ -96,7 +98,7 @@ export default function GlobePage({
   }, [now, virtualDate, virtualMinute]);
 
   return (
-    <section className="console-globe-page" aria-label="虚拟地球">
+    <section className="console-globe-page" aria-label={t("globe.pageAria")}>
       <GlobeView
         lat={location.lat}
         lon={location.lon}
@@ -117,10 +119,16 @@ export default function GlobePage({
       {virtualDate !== null || virtualMinute !== null ? (
         <div className="console-globe-virtual" role="status">
           <span>
-            虚拟 {virtualDate ?? formatDateParts(datePartsFromDate(now))}
             {virtualMinute !== null
-              ? ` ${minuteLabel(virtualMinute)}`
-              : ""}
+              ? t("globe.virtualDateTime", {
+                  date:
+                    virtualDate ?? formatDateParts(datePartsFromDate(now)),
+                  time: minuteLabel(virtualMinute),
+                })
+              : t("globe.virtualDate", {
+                  date:
+                    virtualDate ?? formatDateParts(datePartsFromDate(now)),
+                })}
           </span>
           <button
             type="button"
@@ -129,7 +137,7 @@ export default function GlobePage({
               onVirtualMinuteChange(null);
             }}
           >
-            重置
+            {t("globe.reset")}
           </button>
         </div>
       ) : null}

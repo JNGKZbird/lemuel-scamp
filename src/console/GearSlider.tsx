@@ -5,12 +5,7 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from "react";
 import type { Gear } from "../settings/store";
-
-const OPTIONS: { value: Gear; label: string }[] = [
-  { value: "quiet", label: "偏静" },
-  { value: "standard", label: "标准" },
-  { value: "active", label: "偏动" },
-];
+import { useI18n } from "../i18n";
 
 type Props = {
   label: string;
@@ -44,6 +39,12 @@ export default function GearSlider({
   const draggingRef = useRef(false);
   const reducedRef = useRef(false);
   const [pressing, setPressing] = useState(false);
+  const { t } = useI18n();
+  const OPTIONS: Array<{ value: Gear; label: string }> = [
+    { value: "quiet", label: t("gear.quiet") },
+    { value: "standard", label: t("gear.standard") },
+    { value: "active", label: t("gear.active") },
+  ];
 
   const last = OPTIONS.length - 1;
   const found = OPTIONS.findIndex((option) => option.value === value);

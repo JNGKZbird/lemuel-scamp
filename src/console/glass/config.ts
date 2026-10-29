@@ -5,6 +5,7 @@ export type Rgb = [number, number, number];
 export type CharacterVisual = {
   key: "angel" | "angel2";
   name: string;
+  nameEn: string;
   hair: string;
   bead: Record<ThemeId, string>;
   ink: Record<ThemeId, string>;
@@ -79,6 +80,7 @@ export const CHARACTERS: CharacterVisual[] = [
   {
     key: "angel",
     name: "能天使",
+    nameEn: "Exusiai",
     hair: "#853C54",
     bead: { white: "#853C54", black: "#C9738B", red: "#FF9E90" },
     ink: { white: "#6E2C42", black: "#E5A9B4", red: "#FFE4DD" },
@@ -87,6 +89,7 @@ export const CHARACTERS: CharacterVisual[] = [
   {
     key: "angel2",
     name: "新约能天使",
+    nameEn: "Exusiai the New Covenant",
     hair: "#D84D56",
     bead: { white: "#D84D56", black: "#FF7F8C", red: "#FFD0C4" },
     ink: { white: "#9E2E39", black: "#FFAFB4", red: "#FFF0EA" },

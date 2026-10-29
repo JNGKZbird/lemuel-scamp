@@ -20,6 +20,7 @@ Lemuel Scamp 是一个面向 Windows 的明日方舟开源桌宠（非官方粉�
 - **自主生活**：默认按「偏静 / 标准 / 偏动」三档散步、坐下、打盹；档位只调节奏，活动范围始终是整块屏幕。
 - **虚拟地球作息**：按当地经纬度与太阳位置计算日照、日出日落、极昼极夜与季节午睡；一天分六种时段，各有不同的行为编排。地球页显示月相，月相只作展示。
 - **互动接管**：右键任意一只进入互动，WASD 移动、Shift 冲刺、F 戳一戳 80px 内的另一只；Esc 退出互动，回到当前行为模式。
+- **中英双语界面**：总控台「通用设置」可在简体中文与 English 之间切换，总控台、虚拟地球页、日轨与右键菜单即时跟随。
 - **桌面形态**：透明、无边框、置顶覆盖层；空白区域点击穿透，不占任务栏。
 
 ## 操作
@@ -33,6 +34,7 @@ Lemuel Scamp 是一个面向 Windows 的明日方舟开源桌宠（非官方粉�
 | 戳另一只 | F（互动中，另一只距离 ≤ 80px） |
 | 退出互动 | Esc |
 | 显示、隐藏、档位、模式 | 总控台「通用设置」 |
+| 界面语言 | 总控台「通用设置」→ 语言 |
 
 ## 两种行动方式，一个接管状态
 
@@ -150,7 +152,7 @@ pnpm tauri build    # 构建安装包；当前会被构建守卫拒绝
 
 ## English
 
-Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview). Exusiai and Exusiai the New Covenant live on one screen with independent movement, visibility, and activity levels (Quiet / Standard / Active). By default they walk, sit, and nap on their own; switch the console to Virtual Globe and their day is driven by their location's solar position, daylight, polar day/night, and seasonal noon naps. The globe is drawn entirely in code — sphere, graticule, terminator and a 1600-star field regenerated each time the page opens — with a virtual Sun, a Moon with its own phase, six time-of-day phases, a 12-hour active / 12-hour quiet split under polar day/night, and a day rail for custom dates and times; the moon does not drive behavior. Right-click a pet to enter Interaction: WASD takeover, Shift sprint, and F to poke the other pet within 80 px; ice-glide inertia is off by default and can be enabled in the console. Built on a Spine 3.8 runtime ported from the official spine-ts 3.8 plus a self-made WebGL renderer, Tauri v2 + React 19, for Windows. Voice, LLM dialogue, Agent behaviors, a rhythm mode and extra skins are roadmap items, not in this preview.
+Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview). Exusiai and Exusiai the New Covenant live on one screen with independent movement, visibility, and activity levels (Quiet / Standard / Active). By default they walk, sit, and nap on their own; switch the console to Virtual Globe and their day is driven by their location's solar position, daylight, polar day/night, and seasonal noon naps. The globe is drawn entirely in code — sphere, graticule, terminator and a 1600-star field regenerated each time the page opens — with a virtual Sun, a Moon with its own phase, six time-of-day phases, a 12-hour active / 12-hour quiet split under polar day/night, and a day rail for custom dates and times; the moon does not drive behavior. The console, Virtual Globe page, day rail and right-click menu support Simplified Chinese and English, switchable in General Settings. Right-click a pet to enter Interaction: WASD takeover, Shift sprint, and F to poke the other pet within 80 px; ice-glide inertia is off by default and can be enabled in the console. Built on a Spine 3.8 runtime ported from the official spine-ts 3.8 plus a self-made WebGL renderer, Tauri v2 + React 19, for Windows. Voice, LLM dialogue, Agent behaviors, a rhythm mode and extra skins are roadmap items, not in this preview.
 
 **Keywords**: Arknights, desktop pet, Lemuel Scamp, Exusiai, Exusiai the New Covenant, Spine 3.8, virtual globe, Tauri, Windows, Apache-2.0.
 

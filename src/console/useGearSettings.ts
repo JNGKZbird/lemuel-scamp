@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
-import type { CharKey, Gear, PetMode } from "../settings/store";
+import type { CharKey, FrameRate, Gear, PetMode } from "../settings/store";
 
 type StoreModule = typeof import("../settings/store");
 type Gears = Record<CharKey, Gear>;
@@ -15,6 +15,7 @@ export function useGearSettings() {
   const [visible, setVisible] = useState<Visibility>(VISIBLE_DEFAULTS);
   const [outline, setOutline] = useState(true);
   const [iceGlide, setIceGlide] = useState(false);
+  const [frameRate, setFrameRateState] = useState<FrameRate>("60");
   // 浏览器预览可带 ?mode=time 直接展开日轨；Tauri 内始终以 store 为准。
   const [mode, setMode] = useState<PetMode>(() => {
     if (desktop) return "gear";
@@ -40,6 +41,7 @@ export function useGearSettings() {
         angel2Visible,
         storedOutline,
         storedIceGlide,
+        storedFrameRate,
       ] = await Promise.all([
         store.getGear("angel"),
         store.getGear("angel2"),
@@ -48,6 +50,7 @@ export function useGearSettings() {
         store.getCharacterVisible("angel2"),
         store.getInteractionOutline(),
         store.getInteractionIceGlide(),
+        store.getFrameRate(),
       ]);
       if (!alive) return;
       storeRef.current = store;
@@ -56,6 +59,7 @@ export function useGearSettings() {
       setMode(storedMode);
       setOutline(storedOutline);
       setIceGlide(storedIceGlide);
+      setFrameRateState(storedFrameRate);
       setReady(true);
 
       const unlisteners = await Promise.all([
@@ -78,6 +82,10 @@ export function useGearSettings() {
         store.subscribeInteractionIceGlide((next) => {
           if (!alive) return;
           setIceGlide(next);
+        }),
+        store.subscribeFrameRate((next) => {
+          if (!alive) return;
+          setFrameRateState(next);
         }),
       ]);
       if (alive) cleanups.push(...unlisteners);
@@ -154,17 +162,31 @@ export function useGearSettings() {
       .catch((err) => console.error("[console] save ice glide", err));
   };
 
+  const setFrameRate = (next: FrameRate) => {
+    setFrameRateState(next);
+    if (!desktop) return;
+    writeChain.current = writeChain.current
+      .then(async () => {
+        const store = storeRef.current ?? (await import("../settings/store"));
+        storeRef.current = store;
+        await store.setFrameRate(next);
+      })
+      .catch((err) => console.error("[console] save frame rate", err));
+  };
+
   return {
     gears,
     mode,
     visible,
     outline,
     iceGlide,
+    frameRate,
     ready,
     setCharGear,
     setCharVisible,
     setPetMode,
     setInteractionOutline,
     setInteractionIceGlide,
+    setFrameRate,
   };
 }

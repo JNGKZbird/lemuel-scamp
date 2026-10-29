@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { initLanguage } from "./i18n";
 import "./fonts.css";
 
 const params = new URLSearchParams(location.search);
@@ -40,14 +41,25 @@ const render = (node: React.ReactNode) => {
   root.render(<React.StrictMode>{node}</React.StrictMode>);
 };
 
+// 先读出已保存的语言再渲染，避免窗口先闪一帧中文（或英文）。
+const afterLanguage = (label: string, load: () => Promise<void>) => {
+  void initLanguage().finally(() => {
+    load().catch((err) => console.error(`[boot] ${label}`, err));
+  });
+};
+
 if (isOverlay) {
-  import("./overlay/OverlayPoc")
-    .then(({ default: OverlayPoc }) => render(<OverlayPoc />))
-    .catch((err) => console.error("[boot] overlay", err));
+  afterLanguage("overlay", () =>
+    import("./overlay/OverlayPoc").then(({ default: OverlayPoc }) =>
+      render(<OverlayPoc />),
+    ),
+  );
 } else if (isConsole) {
-  import("./console/ConsoleApp")
-    .then(({ default: ConsoleApp }) => render(<ConsoleApp />))
-    .catch((err) => console.error("[boot] console", err));
+  afterLanguage("console", () =>
+    import("./console/ConsoleApp").then(({ default: ConsoleApp }) =>
+      render(<ConsoleApp />),
+    ),
+  );
 } else if (isPhasePreview) {
   import("./preview/PhasePreview")
     .then(({ default: PhasePreview }) => render(<PhasePreview />))
@@ -61,7 +73,9 @@ if (isOverlay) {
     .then(({ default: App }) => render(<App />))
     .catch((err) => console.error("[boot] app", err));
 } else {
-  import("./overlay/OverlayBootstrap")
-    .then(({ default: OverlayBootstrap }) => render(<OverlayBootstrap />))
-    .catch((err) => console.error("[boot] overlay-bootstrap", err));
+  afterLanguage("overlay-bootstrap", () =>
+    import("./overlay/OverlayBootstrap").then(
+      ({ default: OverlayBootstrap }) => render(<OverlayBootstrap />),
+    ),
+  );
 }

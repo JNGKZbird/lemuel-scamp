@@ -593,15 +593,19 @@ export class PetController {
           : Math.max(0, this.outlineAlpha - fade);
     }
     if (this.revealDir !== 0) {
+      // 方向要在累加前记住：入场时 reveal 从 0 起步，若这一帧 delta 恰为 0
+      // （首帧 rAF 时间戳可能早于建循环时的 performance.now()，dt 被夹成 0），
+      // reveal 仍停在 0，绝不能按“退场到底”处理，否则启动即被判为已隐藏。
+      const dir = this.revealDir;
       const seconds =
-        this.revealDir > 0
+        dir > 0
           ? REVEAL_TIMING.enterSeconds
           : REVEAL_TIMING.exitSeconds;
-      this.reveal += (this.revealDir * delta) / seconds;
+      this.reveal += (dir * delta) / seconds;
       if (this.reveal >= 1) {
         this.reveal = 1;
         this.revealDir = 0;
-      } else if (this.reveal <= 0) {
+      } else if (dir < 0 && this.reveal <= 0) {
         this.reveal = 0;
         this.revealDir = 0;
         this.visible = false;

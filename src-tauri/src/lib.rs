@@ -1,23 +1,36 @@
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use tauri::{Manager, WebviewWindow};
 
 #[derive(Default)]
-struct HitState(Mutex<HashMap<String, Vec<[f64; 4]>>>);
+struct HitState {
+    map: Mutex<HashMap<String, Vec<[f64; 4]>>>,
+    /// 命中框真正变化时自增；轮询线程据此整轮跳过（30 次/秒的推送不再产生任何系统调用）。
+    rev: AtomicU64,
+}
 
 #[derive(Default)]
-struct DragLockState(Mutex<HashSet<String>>);
+struct DragLockState {
+    set: Mutex<HashSet<String>>,
+    rev: AtomicU64,
+}
 
 static PROBE_LOCK: Mutex<()> = Mutex::new(());
 
 /// 接收某个窗口推送的命中矩形（窗口局部 CSS 像素：x, y, w, h）
 #[tauri::command]
 fn set_hit_boxes(window: WebviewWindow, state: tauri::State<'_, HitState>, boxes: Vec<[f64; 4]>) {
-    if let Ok(mut map) = state.0.lock() {
-        map.insert(window.label().to_string(), boxes);
+    if let Ok(mut map) = state.map.lock() {
+        let label = window.label().to_string();
+        // 前端每 33ms 推一次，内容不变时不插入也不抬 rev，轮询线程整轮睡过去。
+        if map.get(&label) != Some(&boxes) {
+            map.insert(label, boxes);
+            state.rev.fetch_add(1, Ordering::Relaxed);
+        }
     }
 }
 
@@ -27,11 +40,15 @@ fn set_drag_lock(
     state: tauri::State<'_, DragLockState>,
     locked: bool,
 ) {
-    if let Ok(mut set) = state.0.lock() {
-        if locked {
-            set.insert(window.label().to_string());
+    if let Ok(mut set) = state.set.lock() {
+        let label = window.label().to_string();
+        let changed = if locked {
+            set.insert(label)
         } else {
-            set.remove(window.label());
+            set.remove(&label)
+        };
+        if changed {
+            state.rev.fetch_add(1, Ordering::Relaxed);
         }
     }
 }
@@ -63,6 +80,31 @@ fn raise_overlay(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// 覆盖层创建后必须先调用：打上 WS_EX_TOOLWINDOW 再显示。
+/// Chromium 的窗口遮挡判定（NativeWindowOcclusionTrackerWin / IsWindowVisibleAndFullyOpaque）
+/// 会直接跳过工具窗口；不加这一位，全屏置顶的覆盖层在下述情况下会被当成
+/// 整屏不透明遮挡物：窗口区域为 NULLREGION（没有宠物可见）或 SIMPLEREGION
+/// （只有一只宠物）——判定只把 COMPLEXREGION 排除在外，且遮挡矩形取的是
+/// GetWindowRect 整窗。结果就是下面的 B 站/浏览器被判为“被遮挡”：画面停止
+/// 绘制，声音仍在播放。
+#[cfg(windows)]
+#[tauri::command]
+fn prepare_overlay_window(app: tauri::AppHandle) -> Result<(), String> {
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
+    };
+
+    let window = app
+        .get_webview_window("overlay")
+        .ok_or_else(|| "overlay window missing".to_string())?;
+    let hwnd = window.hwnd().map_err(|err| err.to_string())?;
+    unsafe {
+        let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex | WS_EX_TOOLWINDOW.0 as isize);
+    }
+    raise_overlay(app)
+}
+
 #[cfg(windows)]
 fn set_click_through(hwnd: windows::Win32::Foundation::HWND, ignore: bool) -> bool {
     use windows::Win32::UI::WindowsAndMessaging::{
@@ -82,16 +124,29 @@ fn set_click_through(hwnd: windows::Win32::Foundation::HWND, ignore: bool) -> bo
     }
 }
 
-/// 把窗口裁剪成若干矩形并集（窗口局部 CSS 像素，内部换算成物理像素）。
+/// 把 CSS 像素盒子换算成物理像素矩形；量化到整数像素，逐帧浮点抖动不会触发重设区域。
+#[cfg(windows)]
+fn boxes_to_px(rects: &[[f64; 4]], scale: f64) -> Vec<[i32; 4]> {
+    let mut out = Vec::with_capacity(rects.len());
+    for b in rects {
+        let x0 = (b[0] * scale).floor() as i32;
+        let y0 = (b[1] * scale).floor() as i32;
+        let x1 = ((b[0] + b[2]) * scale).ceil() as i32;
+        let y1 = ((b[1] + b[3]) * scale).ceil() as i32;
+        if x1 <= x0 || y1 <= y0 {
+            continue;
+        }
+        out.push([x0, y0, x1, y1]);
+    }
+    out
+}
+
+/// 把窗口裁剪成若干矩形并集（已换算好的物理像素）。
 /// 区域之外窗口在系统眼里不存在，鼠标和触屏都会落到下面的窗口。
 /// 用窗口区域而不是 WS_EX_TRANSPARENT：后者对触屏同样穿透，
 /// 且整套判定依赖 GetCursorPos，触控不会更新那个坐标。
 #[cfg(windows)]
-fn apply_input_region(
-    hwnd: windows::Win32::Foundation::HWND,
-    rects: &[[f64; 4]],
-    scale: f64,
-) -> bool {
+fn apply_input_region(hwnd: windows::Win32::Foundation::HWND, rects: &[[i32; 4]]) -> bool {
     use windows::Win32::Graphics::Gdi::{
         CombineRgn, CreateRectRgn, DeleteObject, SetWindowRgn, RGN_OR,
     };
@@ -102,14 +157,7 @@ fn apply_input_region(
             return false;
         }
         for b in rects {
-            let x0 = (b[0] * scale).floor() as i32;
-            let y0 = (b[1] * scale).floor() as i32;
-            let x1 = ((b[0] + b[2]) * scale).ceil() as i32;
-            let y1 = ((b[1] + b[3]) * scale).ceil() as i32;
-            if x1 <= x0 || y1 <= y0 {
-                continue;
-            }
-            let part = CreateRectRgn(x0, y0, x1, y1);
+            let part = CreateRectRgn(b[0], b[1], b[2], b[3]);
             if part.is_invalid() {
                 continue;
             }
@@ -457,6 +505,7 @@ pub fn run() {
             set_hit_boxes,
             set_drag_lock,
             raise_overlay,
+            prepare_overlay_window,
             console_set_maximized,
             append_behavior_probe
         ])
@@ -475,53 +524,124 @@ pub fn run() {
             // 不再读光标、不再改 WS_EX_TRANSPARENT —— 触屏输入根本不会更新光标位置，
             // 而区域是系统级命中测试，鼠标和手指走同一条路。
             thread::spawn(move || {
-                let mut last: HashMap<String, Vec<[f64; 4]>> = HashMap::new();
+                // 给线程起个名字，调试器/Process Explorer 里一眼能认出是命中区域轮询。
+                #[cfg(windows)]
+                unsafe {
+                    use windows::Win32::System::Threading::{
+                        GetCurrentThread, SetThreadDescription,
+                    };
+                    let name: Vec<u16> = "hit-region-poll\0".encode_utf16().collect();
+                    let _ = SetThreadDescription(
+                        GetCurrentThread(),
+                        windows::core::PCWSTR(name.as_ptr()),
+                    );
+                }
+                // 窗口句柄、缩放与尺寸缓存：webview_windows()/scale_factor() 每次都要
+                // 跟主线程打交道，8ms 一轮地调是本线程烧 16% CPU 的主因。
+                #[cfg(windows)]
+                struct CachedWindow {
+                    label: String,
+                    hwnd: isize,
+                    scale: f64,
+                    width_px: i32,
+                    height_px: i32,
+                }
+                #[cfg(windows)]
+                let mut cached: Vec<CachedWindow> = Vec::new();
+                // 已生效的区域（物理像素），内容相同就不再碰 SetWindowRgn。
+                let mut last: HashMap<String, Vec<[i32; 4]>> = HashMap::new();
+                let mut last_rev = u64::MAX;
+                let mut last_refresh: Option<Instant> = None;
                 loop {
                     thread::sleep(Duration::from_millis(8));
-                    let state = handle.state::<HitState>();
-                    let boxes_map = match state.0.lock() {
+                    let hit = handle.state::<HitState>();
+                    let drag = handle.state::<DragLockState>();
+                    let rev = hit.rev.load(Ordering::Relaxed) + drag.rev.load(Ordering::Relaxed);
+                    // 每 500ms 兜底刷新一次窗口表，捕捉新建/重建的窗口。
+                    let refresh_due = last_refresh
+                        .map(|t| t.elapsed() >= Duration::from_millis(500))
+                        .unwrap_or(true);
+                    // 没有任何新内容、也没到刷新点：这一轮什么都不做。
+                    if rev == last_rev && !refresh_due {
+                        continue;
+                    }
+                    let boxes_map = match hit.map.lock() {
                         Ok(guard) => guard.clone(),
                         Err(_) => continue,
                     };
-                    let drag_locks = match handle.state::<DragLockState>().0.lock() {
+                    let drag_locks = match drag.set.lock() {
                         Ok(guard) => guard.clone(),
                         Err(_) => HashSet::new(),
                     };
-                    let windows: Vec<WebviewWindow> = handle.webview_windows().into_values().collect();
-                    for win in windows {
-                        let label = win.label().to_string();
-                        // console 是正常交互窗口，永远不裁剪。
-                        if label == "console" {
-                            continue;
+
+                    #[cfg(windows)]
+                    {
+                        let unknown_label = boxes_map
+                            .keys()
+                            .any(|k| !cached.iter().any(|c| &c.label == k));
+                        if refresh_due || unknown_label {
+                            last_refresh = Some(Instant::now());
+                            let windows: Vec<WebviewWindow> =
+                                handle.webview_windows().into_values().collect();
+                            let mut next = Vec::with_capacity(windows.len());
+                            for win in windows {
+                                let label = win.label().to_string();
+                                let Ok(hwnd) = win.hwnd() else { continue };
+                                let scale = win.scale_factor().unwrap_or(1.0);
+                                let (width_px, height_px) = win
+                                    .inner_size()
+                                    .map(|s| (s.width as i32, s.height as i32))
+                                    .unwrap_or((0, 0));
+                                next.push(CachedWindow {
+                                    label,
+                                    hwnd: hwnd.0 as isize,
+                                    scale,
+                                    width_px,
+                                    height_px,
+                                });
+                            }
+                            // 窗口重建（hwnd 变了）时旧区域已失效，强制重设。
+                            for c in &next {
+                                if let Some(old) = cached.iter().find(|o| o.label == c.label) {
+                                    if old.hwnd != c.hwnd {
+                                        last.remove(&c.label);
+                                    }
+                                }
+                            }
+                            cached = next;
                         }
-                        let scale = win.scale_factor().unwrap_or(1.0);
-                        let mut desired = boxes_map.get(&label).cloned().unwrap_or_default();
-                        // 拖拽期间整窗放行：手指/鼠标离开角色也能继续拖，
-                        // 同时避免区域更新滞后把被拖的角色切掉一块。
-                        if drag_locks.contains(&label) {
-                            if let Ok(size) = win.inner_size() {
-                                desired = vec![[
-                                    0.0,
-                                    0.0,
-                                    size.width as f64 / scale,
-                                    size.height as f64 / scale,
-                                ]];
+
+                        for win in &cached {
+                            // console 是正常交互窗口，永远不裁剪。
+                            if win.label == "console" {
+                                continue;
+                            }
+                            let desired = if drag_locks.contains(&win.label) {
+                                // 拖拽期间整窗放行：手指/鼠标离开角色也能继续拖，
+                                // 同时避免区域更新滞后把被拖的角色切掉一块。
+                                vec![[0, 0, win.width_px, win.height_px]]
+                            } else {
+                                match boxes_map.get(&win.label) {
+                                    Some(boxes) => boxes_to_px(boxes, win.scale),
+                                    None => Vec::new(),
+                                }
+                            };
+                            if last.get(&win.label) == Some(&desired) {
+                                continue;
+                            }
+                            let hwnd = windows::Win32::Foundation::HWND(
+                                win.hwnd as *mut core::ffi::c_void,
+                            );
+                            if apply_input_region(hwnd, &desired) {
+                                last.insert(win.label.clone(), desired);
                             }
                         }
-                        if last.get(&label) == Some(&desired) {
-                            continue;
-                        }
-                        #[cfg(windows)]
-                        let applied = match win.hwnd() {
-                            Ok(hwnd) => apply_input_region(hwnd, &desired, scale),
-                            Err(_) => false,
-                        };
-                        #[cfg(not(windows))]
-                        let applied = false;
-                        if applied {
-                            last.insert(label, desired);
-                        }
                     }
+                    #[cfg(not(windows))]
+                    {
+                        let _ = (&boxes_map, &drag_locks);
+                    }
+                    last_rev = rev;
                 }
             });
             Ok(())

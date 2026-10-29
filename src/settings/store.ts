@@ -7,7 +7,10 @@ export type CharKey = "angel" | "angel2";
 export type Gear = "quiet" | "standard" | "active";
 export type ConsoleTheme = "white" | "black";
 export type ConsoleMaterial = "classic" | "liquid";
+export type AppLanguage = "zh-CN" | "en";
 export type PetMode = "gear" | "time";
+// 覆盖层动画帧率上限。unlimited = 跟随显示器刷新率（rAF 原速）。
+export type FrameRate = "30" | "60" | "120" | "unlimited";
 export type GeoLocation = { lat: number; lon: number; isDefault: boolean };
 export type VirtualTime = { date: string | null; minute: number | null };
 
@@ -22,12 +25,16 @@ const store = new LazyStore("settings.json", { autoSave: false });
 const SCHEMA_VERSION_KEY = "schemaVersion";
 const CONSOLE_THEME_KEY = "console.theme";
 const CONSOLE_MATERIAL_KEY = "console.material";
+const LANGUAGE_KEY = "app.language";
+const LANGUAGE_EVENT = "app-language-changed";
 const INTERACTION_OUTLINE_KEY = "interaction.outline";
 const INTERACTION_ICE_GLIDE_KEY = "interaction.iceGlide";
 const GEAR_EVENT = "gear-changed";
 const VISIBILITY_EVENT = "character-visibility-changed";
 const OUTLINE_EVENT = "interaction-outline-changed";
 const ICE_GLIDE_EVENT = "interaction-ice-glide-changed";
+const FRAME_RATE_KEY = "app.frameRate";
+const FRAME_RATE_EVENT = "app-frame-rate-changed";
 const MODE_KEY = "time.mode";
 const LOCATION_KEY = "time.location";
 const VIRTUAL_TIME_KEY = "time.virtual";
@@ -58,6 +65,17 @@ function normalizeIceGlide(value: unknown): boolean {
 
 function normalizeMode(value: unknown): PetMode {
   return value === "time" ? "time" : "gear";
+}
+
+// 默认 60：全屏透明覆盖层每帧都要重新合成，60Hz 已足够顺滑，也算功耗最省的一档。
+function normalizeFrameRate(value: unknown): FrameRate {
+  return value === "30" || value === "120" || value === "unlimited"
+    ? value
+    : "60";
+}
+
+function normalizeLanguage(value: unknown): AppLanguage | null {
+  return value === "en" || value === "zh-CN" ? value : null;
 }
 
 function normalizeLocation(value: unknown): GeoLocation {
@@ -349,6 +367,67 @@ export async function subscribeLocation(
   const unlistenEvent = await listen<{ lat: number; lon: number }>(
     LOCATION_EVENT,
     (event) => cb(normalizeLocation(event.payload)),
+  );
+  return () => {
+    unlistenStore();
+    unlistenEvent();
+  };
+}
+
+export async function getLanguage(): Promise<AppLanguage | null> {
+  await initSettings();
+  return normalizeLanguage(await store.get<unknown>(LANGUAGE_KEY));
+}
+
+export async function setLanguage(lang: AppLanguage): Promise<void> {
+  await initSettings();
+  await persist(LANGUAGE_KEY, lang);
+  if (isTauri()) await emit(LANGUAGE_EVENT, { lang });
+}
+
+export async function subscribeLanguage(
+  cb: (lang: AppLanguage) => void,
+): Promise<UnlistenFn> {
+  await initSettings();
+  const unlistenStore = await store.onKeyChange<unknown>(LANGUAGE_KEY, (value) => {
+    const normalized = normalizeLanguage(value);
+    if (normalized !== null) cb(normalized);
+  });
+  const unlistenEvent = await listen<{ lang: AppLanguage }>(
+    LANGUAGE_EVENT,
+    (event) => {
+      const normalized = normalizeLanguage(event.payload.lang);
+      if (normalized !== null) cb(normalized);
+    },
+  );
+  return () => {
+    unlistenStore();
+    unlistenEvent();
+  };
+}
+
+export async function getFrameRate(): Promise<FrameRate> {
+  await initSettings();
+  return normalizeFrameRate(await store.get<unknown>(FRAME_RATE_KEY));
+}
+
+export async function setFrameRate(rate: FrameRate): Promise<void> {
+  await initSettings();
+  await persist(FRAME_RATE_KEY, normalizeFrameRate(rate));
+  if (isTauri()) await emit(FRAME_RATE_EVENT, { rate });
+}
+
+export async function subscribeFrameRate(
+  cb: (rate: FrameRate) => void,
+): Promise<UnlistenFn> {
+  await initSettings();
+  const unlistenStore = await store.onKeyChange<unknown>(
+    FRAME_RATE_KEY,
+    (value) => cb(normalizeFrameRate(value)),
+  );
+  const unlistenEvent = await listen<{ rate: FrameRate }>(
+    FRAME_RATE_EVENT,
+    (event) => cb(normalizeFrameRate(event.payload.rate)),
   );
   return () => {
     unlistenStore();
