@@ -4,21 +4,21 @@
 
 Lemuel Scamp 是一个面向 Windows 的明日方舟开源桌宠（非官方粉丝作品）：能天使与异格「新约能天使」两位干员同屏生活，各自独立移动、显示，也能各自调「偏静 / 标准 / 偏动」三档活跃度。默认按档位自主散步、坐下、打盹；在总控台切到「虚拟地球」后，改由你所在地的实时太阳位置、日照与极昼极夜安排她们的一天（地球页显示月相；月相不驱动作息）。右键任意一只进入「互动」：WASD 接管、Shift 冲刺、F 戳一戳 80px 内的另一只；冰面惯性默认关闭，可在总控台开启。内置移植自官方 spine-ts 3.8 的运行时与自研 WebGL 渲染，Tauri v2 + React 19。
 
-**关键词**：明日方舟、开源桌宠、蕾缪乐、能天使、新约能天使、Spine 3.8、虚拟地球、桌面宠物、Tauri、Windows
+**关键词**：明日方舟、开源桌宠、蕾缪乐、能天使、新约能天使、Spine 3.8、虚拟地球、月相、日轨、互动、桌面宠物、Tauri、Windows
 
 > 预览版状态：程序可运行；首次启动的素材安装引导与白名单下载仍在开发中。角色与 Spine 素材不随本仓库分发。本作与《明日方舟》版权方无关。
 
 ## 预览
 
-![两只桌宠在 Windows 桌面上](media/desktop.png)
+![虚拟地球：纯代码绘制的球体、经纬网、晨昏线与星空](media/globe.png)
 
-![Lemuel Scamp 总控台](media/console.png)
+![互动模式中的两只桌宠](media/interaction.png)
 
 ## 她能做什么
 
 - **两位干员同屏**：能天使与新约能天使各自拥有独立的活跃档位、位置与可见性；共享同一套时间与地点。
 - **自主生活**：默认按「偏静 / 标准 / 偏动」三档散步、坐下、打盹；档位只调节奏，活动范围始终是整块屏幕。
-- **虚拟地球作息**：按当地经纬度计算太阳位置与日照，处理日出日落、极昼极夜与季节午睡；地球页显示月相，月相只作展示。
+- **虚拟地球作息**：按当地经纬度与太阳位置计算日照、日出日落、极昼极夜与季节午睡；一天分六种时段，各有不同的行为编排。地球页显示月相，月相只作展示。
 - **互动接管**：右键任意一只进入互动，WASD 移动、Shift 冲刺、F 戳一戳 80px 内的另一只；Esc 退出互动，回到当前行为模式。
 - **桌面形态**：透明、无边框、置顶覆盖层；空白区域点击穿透，不占任务栏。
 
@@ -41,14 +41,26 @@ Lemuel Scamp 是一个面向 Windows 的明日方舟开源桌宠（非官方粉�
 
 「互动」不是第三套引擎，而是随时可以进入的接管状态：右键 → 互动，操作其中一只；Esc 退出后回到进入前的行为方式。
 
+## 互动：基建式接管
+
+互动模式源于《明日方舟》基建里的互动：右键选中一只干员进入互动，就可以自由操控她走动。两只靠得足够近时（渲染内容的包围盒间隙 ≤ 80px），会出现「F」提示；按 F 触发另一只的戳一戳动画。预览版尚未实装语音。
+
+进入互动会给受控干员套上基建同款的黄色描边（#FFEB04，可在总控台关闭）。官方 PC 端只能用屏幕虚拟摇杆，非触屏电脑则要靠鼠标拖拽，用起来不便；这里改用 WASD 移动、Shift 冲刺。冲刺后松开方向键，只要松手时的速度还在冲刺档位，就会像溜冰一样继续滑一段——这就是溜冰惯性，默认关闭，可在总控台开启。Esc 退出互动，回到原来的行为档位或虚拟地球作息；互动只是接管，不会改档位和模式。
+
 ## 虚拟地球
 
-- 按当地经纬度计算太阳位置、日出日落与日照时长。
-- 支持极昼、极夜的边界情况，以及随季节变化的午睡安排。
-- 地球页显示月相、太阳与月亮位置、晨昏线；月相不驱动作息。
-- 地点可在总控台设置；默认地点为北京。
+虚拟地球是纯代码绘制的：球体、经纬网、晨昏线和星空都由着色器实时画出来，不依赖贴图，体积占用很小。每进入一次地球页，星空都会重新随机生成。
 
-预览版的已知限制：地球页暂未附带海岸线数据（`public/globe/map.bin` 不在仓库中），球体、太阳、月亮与晨昏线正常显示，控制台会有一条 `[globe] coastline` 警告。
+![日轨：六种时段与可自定义的虚拟时间](media/day-rail.png)
+
+- **虚拟太阳与月亮**：太阳位置、日照和晨昏线按当地经纬度与时间计算；月亮有自己的月相，月亮只作展示，不驱动作息。
+- **默认北京**：39.9042°N、116.4074°E，让桌宠以北京作息生活。在地球页点位置标记可以改经纬度，设置会保存，用来模拟各地的作息规律。
+- **六种时段**：清晨、白天、中午、傍晚、晚上、凌晨，各有不同的行为编排。时段边界由太阳高度决定，随纬度和日期变化；白天被中午分成上下午，凌晨横跨午夜前后，所以日轨上通常看到八段连续色块，但只有六种时段类型。
+- **极昼与极夜**：没有日出日落时，作息切成两半——活跃 08:00–20:00、安静 20:00–08:00，各 12 小时。
+- **日轨**：可以改虚拟日期和时刻，通过改变一天中的时刻或日期来模拟不同季节的作息环境；点「重置」回到电脑当前时间。
+- **彩蛋**：星空里藏了一颗不点名的星，等你自己发现。
+
+预览版的已知限制：地球页暂未附带海岸线数据（`public/globe/map.bin` 不在仓库中），球体、经纬网、太阳、月亮、晨昏线与星空正常显示，控制台会有一条 `[globe] coastline` 警告。
 
 ## 从源码运行
 
@@ -107,9 +119,19 @@ pnpm tauri build    # 构建安装包；当前会被构建守卫拒绝
 
 - Tauri v2（2.12）+ React 19 + TypeScript + Vite 8；Windows WebView2。
 - Spine 3.8 骨骼解算：移植自官方 spine-ts 3.8，与予愿安洁莉娜的 `spine38` 实现同源；WebGL 渲染器为本项目自研。
+- 虚拟地球：自研 WebGL1 着色器实时绘制球体、经纬网、晨昏线与 1600 颗星，不依赖地球贴图；太阳与月亮位置由本地天文近似计算。
 - 当前运行时读取 Spine 3.8 二进制 `.skel` 与单图集页；不直接读取 Live2D `.moc3`，也不是通用模型导入器。
 - 产品当前固定两位干员，没有模型导入界面。
 - 渲染跟随 `requestAnimationFrame`；物理固定 60Hz，不做固定帧率承诺。
+
+## 路线图（未实装）
+
+以下是规划，不属于当前预览版功能：
+
+- **LLM 对话体系**：基于予愿安洁莉娜桌宠的对话基础，为能天使与新约能天使建立各自的知识库，并内置通用知识库。
+- **更复杂的 Agent 行为**：两只桌宠相互闲聊、相互互动；在屏幕中争夺视觉焦点；特定条件下抢夺鼠标；加入虚拟光标与虚拟键盘行为。最终为软件构建出简单的 Harness 体系。
+- **音游模式（考虑中）**：每只桌宠拥有若干套独特的音色；能天使的 808 牛铃音效已经做好。
+- **更多皮肤（远期）**：能天使的三套皮肤与新约能天使的一套皮肤。
 
 ## 许可与来源
 
@@ -128,7 +150,7 @@ pnpm tauri build    # 构建安装包；当前会被构建守卫拒绝
 
 ## English
 
-Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview). Exusiai and Exusiai the New Covenant live on one screen with independent movement, visibility, and activity levels (Quiet / Standard / Active). By default they walk, sit, and nap on their own; switch the console to Virtual Globe and their day is driven by your local solar position, daylight, polar day/night, and seasonal noon naps. The globe page shows the moon phase; the moon does not drive behavior. Right-click a pet to enter Interaction: WASD takeover, Shift sprint, and F to poke the other pet within 80 px; ice-glide inertia is off by default and can be enabled in the console. Built on a Spine 3.8 runtime ported from the official spine-ts 3.8 plus a self-made WebGL renderer, Tauri v2 + React 19, for Windows.
+Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview). Exusiai and Exusiai the New Covenant live on one screen with independent movement, visibility, and activity levels (Quiet / Standard / Active). By default they walk, sit, and nap on their own; switch the console to Virtual Globe and their day is driven by their location's solar position, daylight, polar day/night, and seasonal noon naps. The globe is drawn entirely in code — sphere, graticule, terminator and a 1600-star field regenerated each time the page opens — with a virtual Sun, a Moon with its own phase, six time-of-day phases, a 12-hour active / 12-hour quiet split under polar day/night, and a day rail for custom dates and times; the moon does not drive behavior. Right-click a pet to enter Interaction: WASD takeover, Shift sprint, and F to poke the other pet within 80 px; ice-glide inertia is off by default and can be enabled in the console. Built on a Spine 3.8 runtime ported from the official spine-ts 3.8 plus a self-made WebGL renderer, Tauri v2 + React 19, for Windows. Voice, LLM dialogue, Agent behaviors, a rhythm mode and extra skins are roadmap items, not in this preview.
 
 **Keywords**: Arknights, desktop pet, Lemuel Scamp, Exusiai, Exusiai the New Covenant, Spine 3.8, virtual globe, Tauri, Windows, Apache-2.0.
 
