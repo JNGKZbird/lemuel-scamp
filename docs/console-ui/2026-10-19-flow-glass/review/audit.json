@@ -1,0 +1,54 @@
+{
+  "initial": {
+    "renderer": "webgl",
+    "theme": "white",
+    "thick": "2",
+    "canvas": {
+      "w": 640,
+      "h": 1800,
+      "cssW": 320,
+      "cssH": 900
+    },
+    "gl": {
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "gpu": "ANGLE (Intel, Intel(R) Arc(TM) 140V GPU (16GB) (0x000064A0) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    "shell": {
+      "w": 320,
+      "h": 900
+    },
+    "scroll": null
+  },
+  "perfIdle": {
+    "avg": 8.31,
+    "p50": 8.3,
+    "p95": 8.4,
+    "p99": 8.7,
+    "max": 8.8,
+    "over20": 0,
+    "over33": 0
+  },
+  "afterKeys": {
+    "theme": "black",
+    "thick": "3"
+  },
+  "perfAfterSwitch": {
+    "avg": 8.33,
+    "p50": 8.3,
+    "p95": 8.4,
+    "p99": 8.7,
+    "max": 8.9,
+    "over20": 0,
+    "over33": 0
+  },
+  "reducedMotion": {
+    "identical": true,
+    "h1": "e393a26798fd2cc2502cd42c2b933988effb036dc51b4599d989fb0dd66334b5",
+    "h2": "e393a26798fd2cc2502cd42c2b933988effb036dc51b4599d989fb0dd66334b5"
+  },
+  "errors": [],
+  "fallback": {
+    "renderer": "fallback",
+    "canvasDisplay": "none"
+  }
+}

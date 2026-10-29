@@ -1,0 +1,1260 @@
+{
+  "version": {
+    "Browser": "Edg/155.0.4283.45",
+    "Protocol-Version": "1.3",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+    "V8-Version": "15.5.9.4",
+    "WebKit-Version": "537.36 (@50f24ef2aa5369a074b8888b7db82d9c0652d642)",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9231/devtools/browser/01b9d074-6eff-4171-b5bd-fec8360b2ba4"
+  },
+  "results": {
+    "280": {
+      "root": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 328,
+          "height": 948,
+          "top": 0,
+          "left": 0,
+          "right": 328,
+          "bottom": 948
+        },
+        "scrollWidth": 328,
+        "clientWidth": 328
+      },
+      "shell": {
+        "rect": {
+          "x": 24,
+          "y": 24,
+          "width": 280,
+          "height": 900,
+          "top": 24,
+          "left": 24,
+          "right": 304,
+          "bottom": 924
+        },
+        "scrollWidth": 278,
+        "clientWidth": 278
+      },
+      "content": {
+        "rect": {
+          "x": 25,
+          "y": 81,
+          "width": 278,
+          "height": 842,
+          "top": 81,
+          "left": 25,
+          "right": 303,
+          "bottom": 923
+        },
+        "scrollWidth": 278,
+        "clientWidth": 278,
+        "scrollHeight": 842,
+        "clientHeight": 842
+      },
+      "header": {
+        "x": 25,
+        "y": 25,
+        "width": 278,
+        "height": 56,
+        "top": 25,
+        "left": 25,
+        "right": 303,
+        "bottom": 81
+      },
+      "h1": {
+        "rect": {
+          "x": 41,
+          "y": 40.5,
+          "width": 48,
+          "height": 24,
+          "top": 40.5,
+          "left": 41,
+          "right": 89,
+          "bottom": 64.5
+        },
+        "fontSize": "16px",
+        "fontWeight": "600"
+      },
+      "caption": {
+        "rect": {
+          "x": 45,
+          "y": 97,
+          "width": 238,
+          "height": 18,
+          "top": 97,
+          "left": 45,
+          "right": 283,
+          "bottom": 115
+        },
+        "color": "rgb(129, 133, 140)",
+        "fontSize": "12px"
+      },
+      "card": {
+        "rect": {
+          "x": 41,
+          "y": 125,
+          "width": 246,
+          "height": 337,
+          "top": 125,
+          "left": 41,
+          "right": 287,
+          "bottom": 462
+        },
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(15, 17, 21)",
+        "boxShadow": "none"
+      },
+      "rows": [
+        {
+          "rect": {
+            "x": 41,
+            "y": 125,
+            "width": 246,
+            "height": 168,
+            "top": 125,
+            "left": 41,
+            "right": 287,
+            "bottom": 293
+          },
+          "title": {
+            "text": "能天使",
+            "color": "rgb(15, 17, 21)",
+            "fontSize": "14px"
+          },
+          "desc": {
+            "text": "自主行动的活跃程度",
+            "color": "rgb(129, 133, 140)",
+            "fontSize": "12px"
+          },
+          "borderTop": "0px none rgb(15, 17, 21)"
+        },
+        {
+          "rect": {
+            "x": 41,
+            "y": 293,
+            "width": 246,
+            "height": 169,
+            "top": 293,
+            "left": 41,
+            "right": 287,
+            "bottom": 462
+          },
+          "title": {
+            "text": "新约能天使",
+            "color": "rgb(15, 17, 21)",
+            "fontSize": "14px"
+          },
+          "desc": {
+            "text": "自主行动的活跃程度",
+            "color": "rgb(129, 133, 140)",
+            "fontSize": "12px"
+          },
+          "borderTop": "1px solid rgba(0, 0, 0, 0.1)"
+        }
+      ],
+      "sliders": [
+        {
+          "rect": {
+            "x": 57,
+            "y": 195,
+            "width": 214,
+            "height": 82,
+            "top": 195,
+            "left": 57,
+            "right": 271,
+            "bottom": 277
+          },
+          "hair": "#853C54",
+          "cursor": "pointer"
+        },
+        {
+          "rect": {
+            "x": 57,
+            "y": 364,
+            "width": 214,
+            "height": 82,
+            "top": 364,
+            "left": 57,
+            "right": 271,
+            "bottom": 446
+          },
+          "hair": "#D84D56",
+          "cursor": "pointer"
+        }
+      ],
+      "hits": [
+        {
+          "x": 57,
+          "y": 207,
+          "width": 214,
+          "height": 48,
+          "top": 207,
+          "left": 57,
+          "right": 271,
+          "bottom": 255
+        },
+        {
+          "x": 57,
+          "y": 376,
+          "width": 214,
+          "height": 48,
+          "top": 376,
+          "left": 57,
+          "right": 271,
+          "bottom": 424
+        }
+      ],
+      "ticks": [
+        {
+          "x": 55,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 55,
+          "right": 59,
+          "bottom": 201
+        },
+        {
+          "x": 162,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 162,
+          "right": 166,
+          "bottom": 201
+        },
+        {
+          "x": 269,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 269,
+          "right": 273,
+          "bottom": 201
+        },
+        {
+          "x": 55,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 55,
+          "right": 59,
+          "bottom": 370
+        },
+        {
+          "x": 162,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 162,
+          "right": 166,
+          "bottom": 370
+        },
+        {
+          "x": 269,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 269,
+          "right": 273,
+          "bottom": 370
+        }
+      ],
+      "thumbs": [
+        {
+          "rect": {
+            "x": 157,
+            "y": 224,
+            "width": 14,
+            "height": 14,
+            "top": 224,
+            "left": 157,
+            "right": 171,
+            "bottom": 238
+          },
+          "bg": "rgb(133, 60, 84)",
+          "shadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+          "border": "2px solid rgb(255, 255, 255)"
+        },
+        {
+          "rect": {
+            "x": 157,
+            "y": 393,
+            "width": 14,
+            "height": 14,
+            "top": 393,
+            "left": 157,
+            "right": 171,
+            "bottom": 407
+          },
+          "bg": "rgb(216, 77, 86)",
+          "shadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+          "border": "2px solid rgb(255, 255, 255)"
+        }
+      ],
+      "labels": [
+        {
+          "text": "偏静",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 57,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 57,
+            "right": 81,
+            "bottom": 277
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "标准",
+          "cls": "gear-slider__label is-selected",
+          "rect": {
+            "x": 152,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 152,
+            "right": 176,
+            "bottom": 277
+          },
+          "color": "rgb(133, 60, 84)",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "hidden": null
+        },
+        {
+          "text": "偏动",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 247,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 247,
+            "right": 271,
+            "bottom": 277
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "偏静",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 57,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 57,
+            "right": 81,
+            "bottom": 446
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "标准",
+          "cls": "gear-slider__label is-selected",
+          "rect": {
+            "x": 152,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 152,
+            "right": 176,
+            "bottom": 446
+          },
+          "color": "rgb(216, 77, 86)",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "hidden": null
+        },
+        {
+          "text": "偏动",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 247,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 247,
+            "right": 271,
+            "bottom": 446
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        }
+      ],
+      "focusables": [
+        {
+          "cls": "gear-slider",
+          "tabIndex": 0,
+          "role": "slider"
+        },
+        {
+          "cls": "gear-slider",
+          "tabIndex": 0,
+          "role": "slider"
+        }
+      ],
+      "disabled": false
+    },
+    "320": {
+      "root": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 368,
+          "height": 948,
+          "top": 0,
+          "left": 0,
+          "right": 368,
+          "bottom": 948
+        },
+        "scrollWidth": 368,
+        "clientWidth": 368
+      },
+      "shell": {
+        "rect": {
+          "x": 24,
+          "y": 24,
+          "width": 320,
+          "height": 900,
+          "top": 24,
+          "left": 24,
+          "right": 344,
+          "bottom": 924
+        },
+        "scrollWidth": 318,
+        "clientWidth": 318
+      },
+      "content": {
+        "rect": {
+          "x": 25,
+          "y": 81,
+          "width": 318,
+          "height": 842,
+          "top": 81,
+          "left": 25,
+          "right": 343,
+          "bottom": 923
+        },
+        "scrollWidth": 318,
+        "clientWidth": 318,
+        "scrollHeight": 842,
+        "clientHeight": 842
+      },
+      "header": {
+        "x": 25,
+        "y": 25,
+        "width": 318,
+        "height": 56,
+        "top": 25,
+        "left": 25,
+        "right": 343,
+        "bottom": 81
+      },
+      "h1": {
+        "rect": {
+          "x": 41,
+          "y": 40.5,
+          "width": 48,
+          "height": 24,
+          "top": 40.5,
+          "left": 41,
+          "right": 89,
+          "bottom": 64.5
+        },
+        "fontSize": "16px",
+        "fontWeight": "600"
+      },
+      "caption": {
+        "rect": {
+          "x": 45,
+          "y": 97,
+          "width": 278,
+          "height": 18,
+          "top": 97,
+          "left": 45,
+          "right": 323,
+          "bottom": 115
+        },
+        "color": "rgb(129, 133, 140)",
+        "fontSize": "12px"
+      },
+      "card": {
+        "rect": {
+          "x": 41,
+          "y": 125,
+          "width": 286,
+          "height": 337,
+          "top": 125,
+          "left": 41,
+          "right": 327,
+          "bottom": 462
+        },
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(15, 17, 21)",
+        "boxShadow": "none"
+      },
+      "rows": [
+        {
+          "rect": {
+            "x": 41,
+            "y": 125,
+            "width": 286,
+            "height": 168,
+            "top": 125,
+            "left": 41,
+            "right": 327,
+            "bottom": 293
+          },
+          "title": {
+            "text": "能天使",
+            "color": "rgb(15, 17, 21)",
+            "fontSize": "14px"
+          },
+          "desc": {
+            "text": "自主行动的活跃程度",
+            "color": "rgb(129, 133, 140)",
+            "fontSize": "12px"
+          },
+          "borderTop": "0px none rgb(15, 17, 21)"
+        },
+        {
+          "rect": {
+            "x": 41,
+            "y": 293,
+            "width": 286,
+            "height": 169,
+            "top": 293,
+            "left": 41,
+            "right": 327,
+            "bottom": 462
+          },
+          "title": {
+            "text": "新约能天使",
+            "color": "rgb(15, 17, 21)",
+            "fontSize": "14px"
+          },
+          "desc": {
+            "text": "自主行动的活跃程度",
+            "color": "rgb(129, 133, 140)",
+            "fontSize": "12px"
+          },
+          "borderTop": "1px solid rgba(0, 0, 0, 0.1)"
+        }
+      ],
+      "sliders": [
+        {
+          "rect": {
+            "x": 57,
+            "y": 195,
+            "width": 254,
+            "height": 82,
+            "top": 195,
+            "left": 57,
+            "right": 311,
+            "bottom": 277
+          },
+          "hair": "#853C54",
+          "cursor": "pointer"
+        },
+        {
+          "rect": {
+            "x": 57,
+            "y": 364,
+            "width": 254,
+            "height": 82,
+            "top": 364,
+            "left": 57,
+            "right": 311,
+            "bottom": 446
+          },
+          "hair": "#D84D56",
+          "cursor": "pointer"
+        }
+      ],
+      "hits": [
+        {
+          "x": 57,
+          "y": 207,
+          "width": 254,
+          "height": 48,
+          "top": 207,
+          "left": 57,
+          "right": 311,
+          "bottom": 255
+        },
+        {
+          "x": 57,
+          "y": 376,
+          "width": 254,
+          "height": 48,
+          "top": 376,
+          "left": 57,
+          "right": 311,
+          "bottom": 424
+        }
+      ],
+      "ticks": [
+        {
+          "x": 55,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 55,
+          "right": 59,
+          "bottom": 201
+        },
+        {
+          "x": 182,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 182,
+          "right": 186,
+          "bottom": 201
+        },
+        {
+          "x": 309,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 309,
+          "right": 313,
+          "bottom": 201
+        },
+        {
+          "x": 55,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 55,
+          "right": 59,
+          "bottom": 370
+        },
+        {
+          "x": 182,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 182,
+          "right": 186,
+          "bottom": 370
+        },
+        {
+          "x": 309,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 309,
+          "right": 313,
+          "bottom": 370
+        }
+      ],
+      "thumbs": [
+        {
+          "rect": {
+            "x": 177,
+            "y": 224,
+            "width": 14,
+            "height": 14,
+            "top": 224,
+            "left": 177,
+            "right": 191,
+            "bottom": 238
+          },
+          "bg": "rgb(133, 60, 84)",
+          "shadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+          "border": "2px solid rgb(255, 255, 255)"
+        },
+        {
+          "rect": {
+            "x": 177,
+            "y": 393,
+            "width": 14,
+            "height": 14,
+            "top": 393,
+            "left": 177,
+            "right": 191,
+            "bottom": 407
+          },
+          "bg": "rgb(216, 77, 86)",
+          "shadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+          "border": "2px solid rgb(255, 255, 255)"
+        }
+      ],
+      "labels": [
+        {
+          "text": "偏静",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 57,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 57,
+            "right": 81,
+            "bottom": 277
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "标准",
+          "cls": "gear-slider__label is-selected",
+          "rect": {
+            "x": 172,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 172,
+            "right": 196,
+            "bottom": 277
+          },
+          "color": "rgb(133, 60, 84)",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "hidden": null
+        },
+        {
+          "text": "偏动",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 287,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 287,
+            "right": 311,
+            "bottom": 277
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "偏静",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 57,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 57,
+            "right": 81,
+            "bottom": 446
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "标准",
+          "cls": "gear-slider__label is-selected",
+          "rect": {
+            "x": 172,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 172,
+            "right": 196,
+            "bottom": 446
+          },
+          "color": "rgb(216, 77, 86)",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "hidden": null
+        },
+        {
+          "text": "偏动",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 287,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 287,
+            "right": 311,
+            "bottom": 446
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        }
+      ],
+      "focusables": [
+        {
+          "cls": "gear-slider",
+          "tabIndex": 0,
+          "role": "slider"
+        },
+        {
+          "cls": "gear-slider",
+          "tabIndex": 0,
+          "role": "slider"
+        }
+      ],
+      "disabled": false
+    },
+    "360": {
+      "root": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 408,
+          "height": 948,
+          "top": 0,
+          "left": 0,
+          "right": 408,
+          "bottom": 948
+        },
+        "scrollWidth": 408,
+        "clientWidth": 408
+      },
+      "shell": {
+        "rect": {
+          "x": 24,
+          "y": 24,
+          "width": 360,
+          "height": 900,
+          "top": 24,
+          "left": 24,
+          "right": 384,
+          "bottom": 924
+        },
+        "scrollWidth": 358,
+        "clientWidth": 358
+      },
+      "content": {
+        "rect": {
+          "x": 25,
+          "y": 81,
+          "width": 358,
+          "height": 842,
+          "top": 81,
+          "left": 25,
+          "right": 383,
+          "bottom": 923
+        },
+        "scrollWidth": 358,
+        "clientWidth": 358,
+        "scrollHeight": 842,
+        "clientHeight": 842
+      },
+      "header": {
+        "x": 25,
+        "y": 25,
+        "width": 358,
+        "height": 56,
+        "top": 25,
+        "left": 25,
+        "right": 383,
+        "bottom": 81
+      },
+      "h1": {
+        "rect": {
+          "x": 41,
+          "y": 40.5,
+          "width": 48,
+          "height": 24,
+          "top": 40.5,
+          "left": 41,
+          "right": 89,
+          "bottom": 64.5
+        },
+        "fontSize": "16px",
+        "fontWeight": "600"
+      },
+      "caption": {
+        "rect": {
+          "x": 45,
+          "y": 97,
+          "width": 318,
+          "height": 18,
+          "top": 97,
+          "left": 45,
+          "right": 363,
+          "bottom": 115
+        },
+        "color": "rgb(129, 133, 140)",
+        "fontSize": "12px"
+      },
+      "card": {
+        "rect": {
+          "x": 41,
+          "y": 125,
+          "width": 326,
+          "height": 337,
+          "top": 125,
+          "left": 41,
+          "right": 367,
+          "bottom": 462
+        },
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(15, 17, 21)",
+        "boxShadow": "none"
+      },
+      "rows": [
+        {
+          "rect": {
+            "x": 41,
+            "y": 125,
+            "width": 326,
+            "height": 168,
+            "top": 125,
+            "left": 41,
+            "right": 367,
+            "bottom": 293
+          },
+          "title": {
+            "text": "能天使",
+            "color": "rgb(15, 17, 21)",
+            "fontSize": "14px"
+          },
+          "desc": {
+            "text": "自主行动的活跃程度",
+            "color": "rgb(129, 133, 140)",
+            "fontSize": "12px"
+          },
+          "borderTop": "0px none rgb(15, 17, 21)"
+        },
+        {
+          "rect": {
+            "x": 41,
+            "y": 293,
+            "width": 326,
+            "height": 169,
+            "top": 293,
+            "left": 41,
+            "right": 367,
+            "bottom": 462
+          },
+          "title": {
+            "text": "新约能天使",
+            "color": "rgb(15, 17, 21)",
+            "fontSize": "14px"
+          },
+          "desc": {
+            "text": "自主行动的活跃程度",
+            "color": "rgb(129, 133, 140)",
+            "fontSize": "12px"
+          },
+          "borderTop": "1px solid rgba(0, 0, 0, 0.1)"
+        }
+      ],
+      "sliders": [
+        {
+          "rect": {
+            "x": 57,
+            "y": 195,
+            "width": 294,
+            "height": 82,
+            "top": 195,
+            "left": 57,
+            "right": 351,
+            "bottom": 277
+          },
+          "hair": "#853C54",
+          "cursor": "pointer"
+        },
+        {
+          "rect": {
+            "x": 57,
+            "y": 364,
+            "width": 294,
+            "height": 82,
+            "top": 364,
+            "left": 57,
+            "right": 351,
+            "bottom": 446
+          },
+          "hair": "#D84D56",
+          "cursor": "pointer"
+        }
+      ],
+      "hits": [
+        {
+          "x": 57,
+          "y": 207,
+          "width": 294,
+          "height": 48,
+          "top": 207,
+          "left": 57,
+          "right": 351,
+          "bottom": 255
+        },
+        {
+          "x": 57,
+          "y": 376,
+          "width": 294,
+          "height": 48,
+          "top": 376,
+          "left": 57,
+          "right": 351,
+          "bottom": 424
+        }
+      ],
+      "ticks": [
+        {
+          "x": 55,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 55,
+          "right": 59,
+          "bottom": 201
+        },
+        {
+          "x": 202,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 202,
+          "right": 206,
+          "bottom": 201
+        },
+        {
+          "x": 349,
+          "y": 197,
+          "width": 4,
+          "height": 4,
+          "top": 197,
+          "left": 349,
+          "right": 353,
+          "bottom": 201
+        },
+        {
+          "x": 55,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 55,
+          "right": 59,
+          "bottom": 370
+        },
+        {
+          "x": 202,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 202,
+          "right": 206,
+          "bottom": 370
+        },
+        {
+          "x": 349,
+          "y": 366,
+          "width": 4,
+          "height": 4,
+          "top": 366,
+          "left": 349,
+          "right": 353,
+          "bottom": 370
+        }
+      ],
+      "thumbs": [
+        {
+          "rect": {
+            "x": 197,
+            "y": 224,
+            "width": 14,
+            "height": 14,
+            "top": 224,
+            "left": 197,
+            "right": 211,
+            "bottom": 238
+          },
+          "bg": "rgb(133, 60, 84)",
+          "shadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+          "border": "2px solid rgb(255, 255, 255)"
+        },
+        {
+          "rect": {
+            "x": 197,
+            "y": 393,
+            "width": 14,
+            "height": 14,
+            "top": 393,
+            "left": 197,
+            "right": 211,
+            "bottom": 407
+          },
+          "bg": "rgb(216, 77, 86)",
+          "shadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+          "border": "2px solid rgb(255, 255, 255)"
+        }
+      ],
+      "labels": [
+        {
+          "text": "偏静",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 57,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 57,
+            "right": 81,
+            "bottom": 277
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "标准",
+          "cls": "gear-slider__label is-selected",
+          "rect": {
+            "x": 192,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 192,
+            "right": 216,
+            "bottom": 277
+          },
+          "color": "rgb(133, 60, 84)",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "hidden": null
+        },
+        {
+          "text": "偏动",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 327,
+            "y": 259,
+            "width": 24,
+            "height": 18,
+            "top": 259,
+            "left": 327,
+            "right": 351,
+            "bottom": 277
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "偏静",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 57,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 57,
+            "right": 81,
+            "bottom": 446
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        },
+        {
+          "text": "标准",
+          "cls": "gear-slider__label is-selected",
+          "rect": {
+            "x": 192,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 192,
+            "right": 216,
+            "bottom": 446
+          },
+          "color": "rgb(216, 77, 86)",
+          "fontSize": "12px",
+          "fontWeight": "500",
+          "hidden": null
+        },
+        {
+          "text": "偏动",
+          "cls": "gear-slider__label",
+          "rect": {
+            "x": 327,
+            "y": 428,
+            "width": 24,
+            "height": 18,
+            "top": 428,
+            "left": 327,
+            "right": 351,
+            "bottom": 446
+          },
+          "color": "rgb(129, 133, 140)",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "hidden": null
+        }
+      ],
+      "focusables": [
+        {
+          "cls": "gear-slider",
+          "tabIndex": 0,
+          "role": "slider"
+        },
+        {
+          "cls": "gear-slider",
+          "tabIndex": 0,
+          "role": "slider"
+        }
+      ],
+      "disabled": false
+    }
+  }
+}

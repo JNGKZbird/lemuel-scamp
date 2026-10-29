@@ -1,0 +1,269 @@
+{
+  "base": {
+    "shell": {
+      "x": 24,
+      "y": 24,
+      "width": 320,
+      "height": 900
+    },
+    "topbar": {
+      "x": 24,
+      "y": 24,
+      "width": 320,
+      "height": 48
+    },
+    "content": {
+      "scrollW": 320,
+      "clientW": 320,
+      "scrollH": 852,
+      "clientH": 852
+    },
+    "windowButtons": [
+      {
+        "rect": {
+          "x": 234,
+          "y": 26,
+          "width": 44,
+          "height": 44
+        },
+        "disabled": true
+      },
+      {
+        "rect": {
+          "x": 280,
+          "y": 26,
+          "width": 44,
+          "height": 44
+        },
+        "disabled": true
+      }
+    ],
+    "segmented": [
+      {
+        "rect": {
+          "x": 44,
+          "y": 124,
+          "width": 280,
+          "height": 48
+        },
+        "options": [
+          {
+            "text": "白瓷",
+            "rect": {
+              "x": 46,
+              "y": 126,
+              "width": 138,
+              "height": 44
+            },
+            "active": true
+          },
+          {
+            "text": "黑曜",
+            "rect": {
+              "x": 184,
+              "y": 126,
+              "width": 138,
+              "height": 44
+            },
+            "active": false
+          }
+        ]
+      },
+      {
+        "rect": {
+          "x": 44,
+          "y": 204,
+          "width": 280,
+          "height": 48
+        },
+        "options": [
+          {
+            "text": "超薄",
+            "rect": {
+              "x": 46,
+              "y": 206,
+              "width": 55.1875,
+              "height": 44
+            },
+            "active": false
+          },
+          {
+            "text": "薄",
+            "rect": {
+              "x": 101.1875,
+              "y": 206,
+              "width": 55.203125,
+              "height": 44
+            },
+            "active": false
+          },
+          {
+            "text": "常规",
+            "rect": {
+              "x": 156.390625,
+              "y": 206,
+              "width": 55.203125,
+              "height": 44
+            },
+            "active": true
+          },
+          {
+            "text": "厚",
+            "rect": {
+              "x": 211.59375,
+              "y": 206,
+              "width": 55.203125,
+              "height": 44
+            },
+            "active": false
+          },
+          {
+            "text": "超厚",
+            "rect": {
+              "x": 266.796875,
+              "y": 206,
+              "width": 55.203125,
+              "height": 44
+            },
+            "active": false
+          }
+        ]
+      }
+    ],
+    "options": [
+      {
+        "text": "白瓷",
+        "h": 44
+      },
+      {
+        "text": "黑曜",
+        "h": 44
+      },
+      {
+        "text": "超薄",
+        "h": 44
+      },
+      {
+        "text": "薄",
+        "h": 44
+      },
+      {
+        "text": "常规",
+        "h": 44
+      },
+      {
+        "text": "厚",
+        "h": 44
+      },
+      {
+        "text": "超厚",
+        "h": 44
+      }
+    ],
+    "sliders": [
+      {
+        "rect": {
+          "x": 44,
+          "y": 337,
+          "width": 280,
+          "height": 93
+        },
+        "valuetext": "标准"
+      },
+      {
+        "rect": {
+          "x": 44,
+          "y": 520,
+          "width": 280,
+          "height": 93
+        },
+        "valuetext": "标准"
+      }
+    ],
+    "labels": [
+      {
+        "text": "偏静",
+        "rect": {
+          "x": 44,
+          "y": 386,
+          "width": 93.328125,
+          "height": 44
+        }
+      },
+      {
+        "text": "标准",
+        "rect": {
+          "x": 137.328125,
+          "y": 386,
+          "width": 93.328125,
+          "height": 44
+        }
+      },
+      {
+        "text": "偏动",
+        "rect": {
+          "x": 230.65625,
+          "y": 386,
+          "width": 93.34375,
+          "height": 44
+        }
+      },
+      {
+        "text": "偏静",
+        "rect": {
+          "x": 44,
+          "y": 569,
+          "width": 93.328125,
+          "height": 44
+        }
+      },
+      {
+        "text": "标准",
+        "rect": {
+          "x": 137.328125,
+          "y": 569,
+          "width": 93.328125,
+          "height": 44
+        }
+      },
+      {
+        "text": "偏动",
+        "rect": {
+          "x": 230.65625,
+          "y": 569,
+          "width": 93.34375,
+          "height": 44
+        }
+      }
+    ],
+    "theme": "white",
+    "thick": "2"
+  },
+  "afterThemeClick": {
+    "theme": "black",
+    "url": "?view=console&preview=1&w=320&theme=black&thick=2"
+  },
+  "afterThickClick": {
+    "thick": "4",
+    "url": "?view=console&preview=1&w=320&theme=black&thick=4"
+  },
+  "gearAfterClick": {
+    "now": "2",
+    "text": "偏动"
+  },
+  "w280h650-white": {
+    "scrollW": 280,
+    "clientW": 280,
+    "scrollH": 602,
+    "clientH": 602,
+    "over": false
+  },
+  "w280h650-black": {
+    "scrollW": 280,
+    "clientW": 280,
+    "scrollH": 602,
+    "clientH": 602,
+    "over": false
+  },
+  "errors": []
+}

@@ -1,0 +1,35 @@
+{
+  "name": "lemuel-scamp",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Lemuel Scamp — an unofficial Arknights desktop pet for Windows, built with Tauri v2 and React 19.",
+  "license": "Apache-2.0",
+  "author": "JNGKZbird",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JNGKZbird/lemuel-scamp.git"
+  },
+  "homepage": "https://github.com/JNGKZbird/lemuel-scamp",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "check:release-assets": "node scripts/check-release-assets.mjs",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-store": "~2.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.16"
+  }
+}

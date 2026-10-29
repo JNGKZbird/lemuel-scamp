@@ -1,0 +1,47 @@
+{
+  "forcedFocusVisible": {
+    "thumbOutline": "rgb(65, 118, 230) solid 2px",
+    "thumbOffset": "2px",
+    "sliderOutline": "rgb(15, 17, 21) none 3px",
+    "sliderOffset": "0px"
+  },
+  "nativeKeys": [
+    {
+      "key": "ArrowRight",
+      "after": "2"
+    },
+    {
+      "key": "ArrowRight",
+      "after": "2"
+    },
+    {
+      "key": "Home",
+      "after": "0"
+    },
+    {
+      "key": "End",
+      "after": "2"
+    },
+    {
+      "key": "ArrowLeft",
+      "after": "1"
+    }
+  ],
+  "syntheticKeys": [
+    {
+      "key": "End",
+      "after": "2"
+    },
+    {
+      "key": "Home",
+      "after": "0"
+    },
+    {
+      "key": "ArrowRight",
+      "after": "1"
+    }
+  ],
+  "reducedMotionRule": [
+    "@media (prefers-reduced-motion: reduce) {\n  .gear-slider__tick, .gear-slider__fill, .gear-slider__thumb { transition: none; }\n}"
+  ]
+}

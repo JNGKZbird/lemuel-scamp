@@ -1,0 +1,113 @@
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  font-family: "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+.overlay-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* 触屏拖动角色时不要被浏览器手势（滚动/缩放）抢走 pointer 流。 */
+  touch-action: none;
+}
+
+.overlay-pet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 280px;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.overlay-pet canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.overlay-menu {
+  position: absolute;
+  z-index: 20;
+  width: 150px;
+  height: 132px;
+  overflow: hidden;
+  border: 1px solid rgba(25, 26, 29, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 10px 28px rgba(15, 17, 21, 0.18);
+  pointer-events: auto;
+}
+
+.overlay-menu button {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #2a2b2f;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.overlay-menu button:hover {
+  background: rgba(25, 26, 29, 0.06);
+}
+
+.overlay-menu button:active {
+  background: rgba(25, 26, 29, 0.1);
+}
+
+.overlay-menu button + button {
+  border-top: 1px solid rgba(25, 26, 29, 0.08);
+}
+
+.overlay-f-prompt {
+  position: absolute;
+  z-index: 16;
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: rgba(24, 25, 28, 0.86);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(15, 17, 21, 0.24);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.overlay-error {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  margin: 0;
+  color: #b3541e;
+  font-size: 12px;
+  white-space: pre-wrap;
+  pointer-events: none;
+}

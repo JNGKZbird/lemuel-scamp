@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Lemuel Scamp",
+  "version": "0.1.0",
+  "identifier": "com.jngkzbird.lemuel-scamp",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build && node scripts/check-release-assets.mjs",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "angel2",
+        "title": "Lemuel Scamp · 新约能天使",
+        "width": 260,
+        "height": 280,
+        "center": true,
+        "visible": false,
+        "focus": false,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "publisher": "JNGKZbird",
+    "copyright": "Copyright © 2026 JNGKZbird & Contributors",
+    "category": "Entertainment",
+    "shortDescription": "An unofficial Arknights desktop pet for Windows.",
+    "longDescription": "Lemuel Scamp is an unofficial Arknights desktop pet for Windows. Exusiai and Exusiai the New Covenant share one screen with independent activity levels, visibility and movement, a virtual-globe daily routine, and a WASD interaction mode.",
+    "license": "Apache-2.0",
+    "licenseFile": "../LICENSE",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

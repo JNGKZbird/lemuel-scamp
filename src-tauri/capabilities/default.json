@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for pet windows, overlay PoC and console",
+  "windows": [
+    "angel2",
+    "angel",
+    "overlay",
+    "console"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-start-dragging",
+    "core:window:allow-unminimize",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    "core:window:allow-outer-position",
+    "core:window:allow-scale-factor",
+    "core:webview:allow-create-webview-window",
+    "core:webview:allow-get-all-webviews",
+    "store:default"
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "geometry": {
+    "slider": {
+      "x": 57,
+      "y": 195,
+      "w": 254,
+      "h": 82,
+      "cx": 184,
+      "cy": 236
+    },
+    "hit": {
+      "x": 57,
+      "y": 207,
+      "w": 254,
+      "h": 48,
+      "cx": 184,
+      "cy": 231
+    },
+    "labels": [
+      {
+        "text": "偏静",
+        "x": 57,
+        "y": 259,
+        "w": 24,
+        "h": 18,
+        "cx": 69,
+        "cy": 268
+      },
+      {
+        "text": "标准",
+        "x": 172,
+        "y": 259,
+        "w": 24,
+        "h": 18,
+        "cx": 184,
+        "cy": 268
+      },
+      {
+        "text": "偏动",
+        "x": 287,
+        "y": 259,
+        "w": 24,
+        "h": 18,
+        "cx": 299,
+        "cy": 268
+      }
+    ],
+    "thumb": {
+      "x": 177,
+      "y": 224,
+      "w": 14,
+      "h": 14,
+      "cx": 184,
+      "cy": 231
+    }
+  },
+  "clicks": [
+    {
+      "label": "偏静",
+      "x": 69,
+      "y": 268,
+      "valuenow": "0"
+    },
+    {
+      "label": "标准",
+      "x": 184,
+      "y": 268,
+      "valuenow": "1"
+    },
+    {
+      "label": "偏动",
+      "x": 299,
+      "y": 268,
+      "valuenow": "2"
+    }
+  ],
+  "pressed": {
+    "before": {
+      "width": "14px",
+      "height": "14px",
+      "transform": "matrix(1, 0, 0, 1, -7, -7)",
+      "boxShadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+      "background": "rgb(133, 60, 84)"
+    },
+    "during": {
+      "width": "14px",
+      "height": "14px",
+      "transform": "matrix(1, 0, 0, 1, -7, -7)",
+      "boxShadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+      "background": "rgb(133, 60, 84)"
+    },
+    "after": {
+      "width": "14px",
+      "height": "14px",
+      "transform": "matrix(1, 0, 0, 1, -7, -7)",
+      "boxShadow": "rgba(17, 24, 39, 0.25) 0px 1px 4px 0px",
+      "background": "rgb(133, 60, 84)"
+    }
+  },
+  "focus": {
+    "activeElement": "gear-slider",
+    "thumbOutline": {
+      "outline": "rgb(15, 17, 21) none 3px",
+      "offset": "0px"
+    },
+    "sliderOutline": {
+      "outline": "rgb(15, 17, 21) none 3px",
+      "offset": "0px"
+    }
+  },
+  "keyboard": [
+    {
+      "key": "ArrowRight",
+      "valuenow": "1",
+      "valuetext": "标准"
+    },
+    {
+      "key": "ArrowRight",
+      "valuenow": "1",
+      "valuetext": "标准"
+    },
+    {
+      "key": "End",
+      "valuenow": "1",
+      "valuetext": "标准"
+    },
+    {
+      "key": "Home",
+      "valuenow": "1",
+      "valuetext": "标准"
+    },
+    {
+      "key": "ArrowLeft",
+      "valuenow": "1",
+      "valuetext": "标准"
+    }
+  ]
+}

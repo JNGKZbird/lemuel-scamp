@@ -1,0 +1,190 @@
+{
+  "white-320x900": {
+    "theme": "white",
+    "thick": "2",
+    "themeSeg": {
+      "x": 74,
+      "y": 104,
+      "width": 104,
+      "height": 48
+    },
+    "themeOptions": [
+      {
+        "text": "白瓷",
+        "rect": {
+          "x": 76,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      },
+      {
+        "text": "黑曜",
+        "rect": {
+          "x": 126,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      }
+    ],
+    "bead": {
+      "x": 175,
+      "y": 252,
+      "width": 18,
+      "height": 18
+    },
+    "beadBorder": "2px solid rgb(255, 255, 255)",
+    "beadBg": "rgb(133, 60, 84)",
+    "fillBg": "rgb(133, 60, 84)",
+    "fillShadow": "none",
+    "tickShadow": "none",
+    "content": {
+      "scrollW": 320,
+      "clientW": 320,
+      "scrollH": 852,
+      "clientH": 852
+    }
+  },
+  "white-280x650": {
+    "theme": "white",
+    "thick": "2",
+    "themeSeg": {
+      "x": 74,
+      "y": 104,
+      "width": 104,
+      "height": 48
+    },
+    "themeOptions": [
+      {
+        "text": "白瓷",
+        "rect": {
+          "x": 76,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      },
+      {
+        "text": "黑曜",
+        "rect": {
+          "x": 126,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      }
+    ],
+    "bead": {
+      "x": 155,
+      "y": 252,
+      "width": 18,
+      "height": 18
+    },
+    "beadBorder": "2px solid rgb(255, 255, 255)",
+    "beadBg": "rgb(133, 60, 84)",
+    "fillBg": "rgb(133, 60, 84)",
+    "fillShadow": "none",
+    "tickShadow": "none",
+    "content": {
+      "scrollW": 280,
+      "clientW": 280,
+      "scrollH": 602,
+      "clientH": 602
+    }
+  },
+  "black-320x900": {
+    "theme": "black",
+    "thick": "2",
+    "themeSeg": {
+      "x": 74,
+      "y": 104,
+      "width": 104,
+      "height": 48
+    },
+    "themeOptions": [
+      {
+        "text": "白瓷",
+        "rect": {
+          "x": 76,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      },
+      {
+        "text": "黑曜",
+        "rect": {
+          "x": 126,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      }
+    ],
+    "bead": {
+      "x": 175,
+      "y": 252,
+      "width": 18,
+      "height": 18
+    },
+    "beadBorder": "2px solid rgb(255, 255, 255)",
+    "beadBg": "rgb(201, 115, 139)",
+    "fillBg": "rgb(201, 115, 139)",
+    "fillShadow": "none",
+    "tickShadow": "none",
+    "content": {
+      "scrollW": 320,
+      "clientW": 320,
+      "scrollH": 852,
+      "clientH": 852
+    }
+  },
+  "black-280x650": {
+    "theme": "black",
+    "thick": "2",
+    "themeSeg": {
+      "x": 74,
+      "y": 104,
+      "width": 104,
+      "height": 48
+    },
+    "themeOptions": [
+      {
+        "text": "白瓷",
+        "rect": {
+          "x": 76,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      },
+      {
+        "text": "黑曜",
+        "rect": {
+          "x": 126,
+          "y": 106,
+          "width": 50,
+          "height": 44
+        }
+      }
+    ],
+    "bead": {
+      "x": 155,
+      "y": 252,
+      "width": 18,
+      "height": 18
+    },
+    "beadBorder": "2px solid rgb(255, 255, 255)",
+    "beadBg": "rgb(201, 115, 139)",
+    "fillBg": "rgb(201, 115, 139)",
+    "fillShadow": "none",
+    "tickShadow": "none",
+    "content": {
+      "scrollW": 280,
+      "clientW": 280,
+      "scrollH": 602,
+      "clientH": 602
+    }
+  }
+}
