@@ -20,8 +20,6 @@ Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview)
 
 ## 预览
 
-![虚拟地球：纯代码绘制的球体、经纬网、晨昏线与星空](media/globe.png)
-
 ![互动模式中的两只桌宠](media/interaction.png)
 
 ## 她能做什么
@@ -60,6 +58,8 @@ Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview)
 进入互动会给受控干员套上基建同款的黄色描边（#FFEB04，可在总控台关闭）。官方 PC 端只能用屏幕虚拟摇杆，非触屏电脑则要靠鼠标拖拽，用起来不便；这里改用 WASD 移动、Shift 冲刺。冲刺后松开方向键，只要松手时的速度还在冲刺档位，就会像溜冰一样继续滑一段——这就是溜冰惯性，默认关闭，可在总控台开启。Esc 退出互动，回到原来的行为档位或虚拟地球作息；互动只是接管，不会改档位和模式。
 
 ## 虚拟地球
+
+![虚拟地球：总控台地球页的自定义位置、太阳高度、晨昏线与星空；右下角可回到我的位置](media/globe.png)
 
 虚拟地球是纯代码绘制的：球体、经纬网、晨昏线和星空都由着色器实时画出来，不依赖贴图，体积占用很小。每进入一次地球页，星空都会重新随机生成。
 
