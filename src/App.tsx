@@ -53,7 +53,12 @@ import {
 } from "./pet/calendar.ts";
 import { GEAR_PRESETS } from "./pet/behavior-presets.ts";
 import type { Behavior } from "./pet/behavior-presets.ts";
-import { CHARS, TURN_SECONDS } from "./pet/characters.ts";
+import {
+  CHARS,
+  TURN_SECONDS,
+  initAssetBaseFromStatus,
+  modelDir,
+} from "./pet/characters.ts";
 import type { CharKey } from "./pet/characters.ts";
 import { getPhase } from "./pet/solar.ts";
 import type { PhaseId } from "./pet/solar.ts";
@@ -301,10 +306,13 @@ export default function App() {
         }).catch(() => {});
       }
 
-      const model = await load_model(MODEL.dir, MODEL.name);
+      await initAssetBaseFromStatus();
+      if (disposed) return;
+      const dir = modelDir(charKey);
+      const model = await load_model(dir, MODEL.name);
       if (disposed) return;
       const renderer = new SpineWebGLRenderer(canvas);
-      await renderer.set_model(model, MODEL.dir);
+      await renderer.set_model(model, dir);
       if (disposed) return;
 
       // 官方基建过渡口径（2.7.81）：Relax↔Move 与 Sit/Sleep 进出 = 0.2s 交叉淡化；

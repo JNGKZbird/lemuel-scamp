@@ -6,6 +6,8 @@ use std::time::{Duration, Instant};
 
 use tauri::{Manager, WebviewWindow};
 
+mod assets;
+
 #[derive(Default)]
 struct HitState {
     map: Mutex<HashMap<String, Vec<[f64; 4]>>>,
@@ -499,15 +501,23 @@ async fn console_set_maximized(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_dialog::init())
         .manage(HitState::default())
         .manage(DragLockState::default())
+        .manage(assets::InstallerState::default())
         .invoke_handler(tauri::generate_handler![
             set_hit_boxes,
             set_drag_lock,
             raise_overlay,
             prepare_overlay_window,
             console_set_maximized,
-            append_behavior_probe
+            append_behavior_probe,
+            assets::asset_status,
+            assets::installer_download,
+            assets::installer_cancel,
+            assets::installer_install_zip,
+            assets::installer_reveal,
+            assets::installer_restart
         ])
         .setup(|app| {
             // 初始全穿透：等前端推来命中框后再按需放开

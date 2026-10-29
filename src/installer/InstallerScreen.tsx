@@ -45,6 +45,31 @@ const THEME_LABEL_KEYS: Record<ThemeId, MessageKey> = {
   red: "installer.themeRed",
 };
 
+/**
+ * Tauri 的 invoke 拒绝值可能是字符串、序列化错误对象，或事件对象
+ * （shape 命令失败时 reject 的是 event，真正的错误在 payload 里）。
+ * 直接 String() 会得到 “[object Object]”，所以逐层取可读文本。
+ */
+function describeError(err: unknown): string {
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message || String(err);
+  if (typeof err === "object" && err !== null) {
+    const record = err as { payload?: unknown; message?: unknown };
+    if (record.payload !== undefined) {
+      return typeof record.payload === "string"
+        ? record.payload
+        : describeError(record.payload);
+    }
+    if (typeof record.message === "string") return record.message;
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return String(err);
+    }
+  }
+  return String(err);
+}
+
 type Props = {
   mode: InstallerMode;
   controller: InstallerController;
@@ -54,8 +79,10 @@ type Props = {
   /** 当前显示的语言；预览时由 ConsoleApp 的 previewLang 覆盖，不写设置。 */
   language: Lang;
   onLanguageChange: (lang: Lang) => void;
-  /** 预览：返回总控台。 */
+  /** 预览：返回总控台；live：安装完成、覆盖层已就绪后回到正常总控台。 */
   onExit: () => void;
+  /** live：完成页“开始”在覆盖层创建成功后的回调。 */
+  onStart?: () => void;
   /** live：应用内退出；预览不传。 */
   onQuit?: () => void;
 };
@@ -93,6 +120,7 @@ export default function InstallerScreen({
   language,
   onLanguageChange,
   onExit,
+  onStart,
   onQuit,
 }: Props) {
   // 不用 useI18n 的 t：预览时语言可能是局部覆盖值，不能跟着全局走。
@@ -101,6 +129,9 @@ export default function InstallerScreen({
   const { state } = controller;
   const preview = mode === "preview";
   const [acknowledged, setAcknowledged] = useState(false);
+  const [starting, setStarting] = useState(false);
+  /** 完成页“开始”失败：素材已装好，错误就地展示，不退回下载错误态。 */
+  const [finishError, setFinishError] = useState<string | null>(null);
 
   const headline =
     state.phase === "welcome"
@@ -140,12 +171,21 @@ export default function InstallerScreen({
       ? (state.received / state.total) * 100
       : 0;
 
-  const handleDoneStart = () => {
+  const handleDoneStart = async () => {
     if (preview) {
       onExit();
       return;
     }
-    controller.finish();
+    setStarting(true);
+    setFinishError(null);
+    try {
+      await controller.finish();
+      onStart?.();
+    } catch (err) {
+      setFinishError(describeError(err));
+    } finally {
+      setStarting(false);
+    }
   };
 
   return (
@@ -285,6 +325,16 @@ export default function InstallerScreen({
             </div>
           ) : null}
 
+          {state.phase === "done" && finishError ? (
+            <div className="installer-error" role="alert">
+              <p className="installer-error__msg">{t("installer.finishFailed")}</p>
+              <details className="installer-error__details">
+                <summary>{t("installer.details")}</summary>
+                <pre>{finishError}</pre>
+              </details>
+            </div>
+          ) : null}
+
           <div className="installer-actions">
             {state.phase === "welcome" ? (
               <>
@@ -330,15 +380,16 @@ export default function InstallerScreen({
                 <button
                   type="button"
                   className="installer-btn installer-btn--primary"
+                  disabled={starting}
                   onClick={handleDoneStart}
                 >
-                  {t("installer.start")}
+                  {finishError ? t("installer.retry") : t("installer.start")}
                 </button>
                 <button
                   type="button"
                   className="installer-btn installer-btn--ghost"
-                  disabled
-                  title="Phase B"
+                  disabled={preview || !controller.reveal}
+                  onClick={() => controller.reveal?.()}
                 >
                   {t("installer.viewLocation")}
                 </button>

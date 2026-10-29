@@ -33,7 +33,10 @@ export type InstallerController = {
   cancel: () => void;
   retry: () => void;
   importZip: () => void;
-  finish: () => void;
+  /** 安装完成后的“开始”：live 会先创建桌宠覆盖层；失败抛回完成页就地展示，不重新下载。 */
+  finish: () => void | Promise<void>;
+  /** live：在文件管理器中打开安装目录。 */
+  reveal?: () => void;
   /** 仅开发预览：直接跳到某个状态；live 控制器不实现。 */
   jump?: (phase: InstallerPhase) => void;
 };

@@ -53,11 +53,33 @@ export interface LoadedModel {
   pose_offsets: Record<string, number>;
 }
 
+// 生产环境的 SPA fallback 会对缺失路径返回 index.html 且状态码 200；
+// 只认 2xx 不够。不能靠 content-type 判断：Tauri asset 协议对 `.atlas`/`.skel`
+// 这类未知扩展名一律兜底成 text/html（MimeType::parse），文件本身却是好的。
+// 所以直接看内容开头是不是 HTML 文档。
+const HTML_HEAD = /^\s*(<!doctype html|<html[\s>])/i;
+
+async function fetch_asset(url: string): Promise<ArrayBuffer> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`asset ${response.status}: ${url}`);
+  }
+  const buf = await response.arrayBuffer();
+  const head = new TextDecoder("utf-8", { fatal: false }).decode(
+    new Uint8Array(buf, 0, Math.min(buf.byteLength, 64)),
+  );
+  if (HTML_HEAD.test(head)) {
+    throw new Error(`asset is HTML (SPA fallback): ${url}`);
+  }
+  return buf;
+}
+
 export async function load_model(base_dir: string, name: string): Promise<LoadedModel> {
-  const [atlas_text, skel_buf] = await Promise.all([
-    fetch(`${base_dir}/${name}.atlas`).then((r) => r.text()),
-    fetch(`${base_dir}/${name}.skel`).then((r) => r.arrayBuffer()),
+  const [atlas_buf, skel_buf] = await Promise.all([
+    fetch_asset(`${base_dir}/${name}.atlas`),
+    fetch_asset(`${base_dir}/${name}.skel`),
   ]);
+  const atlas_text = new TextDecoder().decode(atlas_buf);
   const atlas = new TextureAtlas(atlas_text, () => ({}));
   const loader = new AtlasAttachmentLoaderImpl(atlas);
   const sd = new SkeletonBinary(loader).read_skeleton_data(new Uint8Array(skel_buf));
@@ -245,6 +267,9 @@ void main() {
 function load_image(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    // 已安装素材走 asset 协议（http://asset.localhost/...）：不声明 CORS，
+    // texImage2D 会以画布被污染为由抛 SecurityError。
+    if (/^https?:\/\//i.test(url)) img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("image load failed: " + url));
     img.src = url;

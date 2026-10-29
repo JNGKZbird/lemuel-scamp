@@ -7,6 +7,8 @@ import {
   CHARS,
   MODEL_WORLD_SCALE,
   TURN_SECONDS,
+  initAssetBaseFromStatus,
+  modelDir,
 } from "../pet/characters.ts";
 import type { CharKey } from "../pet/characters.ts";
 import {
@@ -258,11 +260,16 @@ export default function OverlayPoc() {
         );
       };
 
+      // 已安装素材走 asset 协议；dev 构建继续读同源 /models。
+      await initAssetBaseFromStatus();
+      if (disposed) return;
+
       for (const key of keys) {
-        const model = await load_model(CHARS[key].dir, CHARS[key].name);
+        const dir = modelDir(key);
+        const model = await load_model(dir, CHARS[key].name);
         if (disposed) return;
         const renderer = new SpineWebGLRenderer(canvases[key]);
-        await renderer.set_model(model, CHARS[key].dir);
+        await renderer.set_model(model, dir);
         if (disposed) return;
 
         const modelH = Math.max(1, model.body.head_y - model.body.ground_y);

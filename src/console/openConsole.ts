@@ -15,10 +15,18 @@ async function focusExisting(win: WebviewWindow): Promise<void> {
   await win.setFocus().catch(() => {});
 }
 
+type ConsoleOptions = {
+  focus: boolean;
+  /** 首启素材安装：总控台直接以 onboarding 模式打开。 */
+  onboarding?: boolean;
+  /** asset_status 失败时的详情，让安装器直接落在错误态。 */
+  installerError?: string | null;
+};
+
 async function createConsole(
   theme: ConsoleTheme,
   material: ConsoleMaterial,
-  opts: { focus: boolean },
+  opts: ConsoleOptions,
 ): Promise<void> {
   const monitor = await primaryMonitor().catch(() => null);
   const scale = monitor?.scaleFactor ?? 1;
@@ -39,8 +47,16 @@ async function createConsole(
         ? "#000000"
         : "#e7e3db";
 
+  const params = new URLSearchParams({
+    view: "console",
+    theme,
+    material,
+  });
+  if (opts.onboarding) params.set("onboarding", "1");
+  if (opts.installerError) params.set("installerError", opts.installerError);
+
   const consoleWindow = new WebviewWindow("console", {
-    url: `/?view=console&theme=${theme}&material=${material}`,
+    url: `/?${params.toString()}`,
     title: translate(getLanguage(), "app.consoleWindowTitle"),
     width,
     height,
@@ -71,7 +87,7 @@ async function createConsole(
 export async function ensureConsole(
   theme: ConsoleTheme,
   material: ConsoleMaterial,
-  opts: { focus: boolean },
+  opts: ConsoleOptions,
 ): Promise<void> {
   const existing = (await getAllWebviewWindows()).find((w) => w.label === "console");
   if (existing) {

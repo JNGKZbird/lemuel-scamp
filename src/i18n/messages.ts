@@ -150,6 +150,7 @@ export const zh = {
   "installer.error.disk": "无法写入应用数据目录，请检查磁盘空间与权限。",
   "installer.error.cancelled": "已取消。",
   "installer.error.unknown": "发生了未预期的错误。",
+  "installer.finishFailed": "素材已装好，但桌宠窗口没有启动成功。可以直接重试，不会重新下载。",
   "installer.footer":
     "Lemuel Scamp v0.1.0 Preview · 素材版权归上海鹰角网络有限公司所有",
   "installer.themeRed": "红",
@@ -334,6 +335,8 @@ export const en: Record<MessageKey, string> = {
     "Couldn’t write to the app data folder. Check disk space and permissions.",
   "installer.error.cancelled": "Cancelled.",
   "installer.error.unknown": "Something unexpected happened.",
+  "installer.finishFailed":
+    "The assets are installed, but the pet window didn’t start. Retry is safe — nothing is downloaded again.",
   "installer.footer":
     "Lemuel Scamp v0.1.0 Preview · Assets © Shanghai Hypergryph Network Technology Co., Ltd.",
   "installer.themeRed": "Red",

@@ -16,7 +16,7 @@ Lemuel Scamp is an unofficial Arknights desktop pet for Windows (v0.1.0 Preview)
 
 **Keywords**: Arknights, desktop pet, Lemuel Scamp, Exusiai, Exusiai the New Covenant, Spine 3.8, virtual globe, Tauri, Windows, Apache-2.0.
 
-> 预览版状态：程序可运行；首次启动的素材安装引导与白名单下载仍在开发中。角色与 Spine 素材不随本仓库分发。本作与《明日方舟》版权方无关。
+> 预览版状态：程序可运行；首次启动会进入素材安装器，从 GitHub Releases 下载并校验素材包。角色与 Spine 素材不随本仓库分发。本作与《明日方舟》版权方无关。
 
 ## 预览
 
@@ -95,7 +95,19 @@ pnpm tauri dev
 
 ### 角色素材
 
-角色与 Spine 素材不随本仓库分发。运行前把素材放入：
+角色与 Spine 素材不随本仓库分发。**首次启动时**，安装器会从 `trickster-assets-v1` Release 下载 `windows.zip`（975,229 字节），校验整包 SHA-256 后解压到应用数据目录：
+
+```text
+%LOCALAPPDATA%\com.jngkzbird.lemuel-scamp\assets\models-v1\
+  angel\    6 个文件
+  angel2\   3 个文件
+```
+
+<https://github.com/JNGKZbird/Arknights-Desktop-Pets-Archive/releases/tag/trickster-assets-v1>
+
+下载失败、代理不通或离线时，可在安装器里选「手动导入官方 zip」，选中同一个 `windows.zip`。文件大小与 SHA-256 必须与内置值一致；非官方包会被拒绝，已安装的素材不受影响。
+
+从源码开发时（`pnpm tauri dev`），若下列文件已放在 `public/models`，程序会直接使用它们并跳过安装器；设置 `LEMUEL_FORCE_ONBOARDING=1` 可忽略这个开发来源，强制走安装流程并改读已安装目录。
 
 ```text
 public/models/angel/
@@ -112,11 +124,7 @@ public/models/angel2/
   build_char_1041_angel2.skel
 ```
 
-素材来自同一维护者的档案库。下载 `trickster-assets-v1` Release 中的 `windows.zip`：
-
-<https://github.com/JNGKZbird/Arknights-Desktop-Pets-Archive/releases/tag/trickster-assets-v1>
-
-解压到项目根目录，压缩包内的 `public/models/{angel,angel2}` 会落到上面的位置。素材仅供个人非商业使用，版权归上海鹰角网络有限公司所有。
+素材仅供个人非商业使用，版权归上海鹰角网络有限公司所有。
 
 ### 构建
 

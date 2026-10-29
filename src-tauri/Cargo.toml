@@ -21,10 +21,25 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["protocol-asset"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-store = "2"
+tauri-plugin-dialog = "2"
+# 0.13 默认走 rustls + aws-lc-rs（Windows 上要 CMake/NASM）；改用系统 TLS（SChannel）。
+# system-proxy 让它同时读取 Windows 系统代理，FLClash 这类工具不必再导出环境变量。
+reqwest = { version = "0.13", default-features = false, features = [
+  "native-tls",
+  "charset",
+  "http2",
+  "system-proxy",
+  "stream",
+] }
+sha2 = "0.10"
+# 只用到 sync::Notify 与 time::timeout：让下载在卡住时能被取消/超时打断。
+tokio = { version = "1", default-features = false, features = ["sync", "time"] }
+# 只解压，不需要 zopfli 编码器；zlib-rs 是纯 Rust 后端，Windows 上无需 C 工具链。
+zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62.2", features = [

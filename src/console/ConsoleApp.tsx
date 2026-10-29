@@ -27,7 +27,11 @@ import { translate, useI18n } from "../i18n";
 import type { MessageKey } from "../i18n";
 import InstallerScreen from "../installer/InstallerScreen";
 import { useMockInstaller } from "../installer/useMockInstaller";
-import type { InstallerMode } from "../installer/types";
+import { useLiveInstaller } from "../installer/useLiveInstaller";
+import type {
+  InstallerErrorCode,
+  InstallerMode,
+} from "../installer/types";
 import "./ConsoleApp.css";
 
 // 语言名称使用各语言的自称，不随界面语言翻译。
@@ -116,20 +120,31 @@ export default function ConsoleApp() {
       ? "globe"
       : "general",
   );
-  // Phase A 的入口只有开发预览；Phase B 的 ?onboarding=1 -> "live" 从这里接。
+  // ?onboarding=1 是首启（bootstrap 创建窗口时写入）；preview 仍只限开发构建。
   const [onboardingMode, setOnboardingMode] = useState<InstallerMode | null>(
     () => {
-      if (!import.meta.env.DEV) return null;
-      return new URLSearchParams(location.search).get("onboarding") ===
-        "preview"
-        ? "preview"
-        : null;
+      const value = new URLSearchParams(location.search).get("onboarding");
+      if (value === "1") return "live";
+      if (value === "preview" && import.meta.env.DEV) return "preview";
+      return null;
     },
   );
+  // asset_status 失败时 bootstrap 会把详情放进 URL，安装器直接落在错误态。
+  const [initialInstallerError] = useState<{
+    code: InstallerErrorCode;
+    detail: string;
+  } | null>(() => {
+    const detail = new URLSearchParams(location.search).get("installerError");
+    return detail ? { code: "unknown", detail } : null;
+  });
   // 预览条切主题/语言只改局部状态，不写 settings store。
   const [previewTheme, setPreviewTheme] = useState<ThemeId | null>(null);
   const [previewLang, setPreviewLang] = useState<AppLanguage | null>(null);
-  const installer = useMockInstaller();
+  const mockInstaller = useMockInstaller();
+  const liveInstaller = useLiveInstaller({
+    initialError: initialInstallerError,
+  });
+  const installer = onboardingMode === "live" ? liveInstaller : mockInstaller;
   const displayTheme: ThemeId =
     onboardingMode === "preview" && previewTheme !== null
       ? previewTheme
@@ -408,13 +423,14 @@ export default function ConsoleApp() {
     url.searchParams.set("onboarding", "preview");
     history.replaceState(null, "", url);
   };
-  const exitInstallerPreview = () => {
+  const exitOnboarding = () => {
     installer.cancel();
     setOnboardingMode(null);
     setPreviewTheme(null);
     setPreviewLang(null);
     const url = new URL(location.href);
     url.searchParams.delete("onboarding");
+    url.searchParams.delete("installerError");
     history.replaceState(null, "", url);
   };
   const toggleMaximized = () => {
@@ -590,7 +606,8 @@ export default function ConsoleApp() {
                   }
                   void setLanguage(next);
                 }}
-                onExit={exitInstallerPreview}
+                onExit={exitOnboarding}
+                onStart={exitOnboarding}
                 onQuit={close}
               />
             ) : page === "general" ? (
