@@ -23,7 +23,11 @@ import type {
   FrameRate,
   PetMode,
 } from "../settings/store";
-import { useI18n } from "../i18n";
+import { translate, useI18n } from "../i18n";
+import type { MessageKey } from "../i18n";
+import InstallerScreen from "../installer/InstallerScreen";
+import { useMockInstaller } from "../installer/useMockInstaller";
+import type { InstallerMode } from "../installer/types";
 import "./ConsoleApp.css";
 
 // 语言名称使用各语言的自称，不随界面语言翻译。
@@ -112,6 +116,29 @@ export default function ConsoleApp() {
       ? "globe"
       : "general",
   );
+  // Phase A 的入口只有开发预览；Phase B 的 ?onboarding=1 -> "live" 从这里接。
+  const [onboardingMode, setOnboardingMode] = useState<InstallerMode | null>(
+    () => {
+      if (!import.meta.env.DEV) return null;
+      return new URLSearchParams(location.search).get("onboarding") ===
+        "preview"
+        ? "preview"
+        : null;
+    },
+  );
+  // 预览条切主题/语言只改局部状态，不写 settings store。
+  const [previewTheme, setPreviewTheme] = useState<ThemeId | null>(null);
+  const [previewLang, setPreviewLang] = useState<AppLanguage | null>(null);
+  const installer = useMockInstaller();
+  const displayTheme: ThemeId =
+    onboardingMode === "preview" && previewTheme !== null
+      ? previewTheme
+      : theme;
+  const displayLang: AppLanguage =
+    onboardingMode === "preview" && previewLang !== null ? previewLang : lang;
+  // 顶部栏常驻，onboarding 预览切语言时要跟着走；平时与 t 等价。
+  const tb = (key: MessageKey, vars?: Record<string, string | number>) =>
+    translate(displayLang, key, vars);
   const [virtualDate, setVirtualDate] = useState<string | null>(null);
   const [virtualMinute, setVirtualMinute] = useState<number | null>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -157,7 +184,8 @@ export default function ConsoleApp() {
 
   const thicknessConfig = THICKNESSES[DEFAULT_THICKNESS];
   const { rendererState } = useGlassStage(shellRef, canvasRef, {
-    theme,
+    // 预览条切主题时液态玻璃画布也要跟着换，否则玻璃底还是旧主题的颜色。
+    theme: displayTheme,
     thickness: DEFAULT_THICKNESS,
     enabled: material === "liquid",
   });
@@ -167,12 +195,15 @@ export default function ConsoleApp() {
   }, [desktop]);
 
   useEffect(() => {
-    const title = t("app.consoleWindowTitle");
+    const title = translate(
+      displayLang,
+      onboardingMode ? "installer.windowTitle" : "app.consoleWindowTitle",
+    );
     document.title = title;
     winRef.current?.setTitle(title).catch((err) => {
       console.error("[console] title", err);
     });
-  }, [desktop, lang, t]);
+  }, [desktop, displayLang, onboardingMode]);
 
   const transitionTheme = (update: () => void) => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -340,6 +371,17 @@ export default function ConsoleApp() {
       ) {
         return;
       }
+      // 预览中 1/2/3 只切局部主题，不写 store。
+      if (onboardingMode === "preview") {
+        let next: ThemeId | null = null;
+        if (event.key === "1") next = "white";
+        else if (event.key === "2") next = "black";
+        else if (event.key === "3") next = "red";
+        if (!next) return;
+        event.preventDefault();
+        setPreviewTheme(next);
+        return;
+      }
       let nextTheme = theme;
       if (event.key === "1") nextTheme = "white";
       else if (event.key === "2") nextTheme = "black";
@@ -349,13 +391,31 @@ export default function ConsoleApp() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [theme, config.preview, desktop]);
+  }, [theme, config.preview, desktop, onboardingMode]);
 
   const minimize = () => {
     winRef.current?.minimize().catch((err) => console.error("[console] minimize", err));
   };
   const close = () => {
     winRef.current?.close().catch((err) => console.error("[console] close", err));
+  };
+  const openInstallerPreview = () => {
+    setPreviewTheme(null);
+    setPreviewLang(null);
+    installer.cancel();
+    setOnboardingMode("preview");
+    const url = new URL(location.href);
+    url.searchParams.set("onboarding", "preview");
+    history.replaceState(null, "", url);
+  };
+  const exitInstallerPreview = () => {
+    installer.cancel();
+    setOnboardingMode(null);
+    setPreviewTheme(null);
+    setPreviewLang(null);
+    const url = new URL(location.href);
+    url.searchParams.delete("onboarding");
+    history.replaceState(null, "", url);
   };
   const toggleMaximized = () => {
     if (!desktop) return;
@@ -410,12 +470,12 @@ export default function ConsoleApp() {
     <div
       className={`console-root${config.preview ? " is-preview" : ""}`}
       style={style}
-      data-theme={theme}
+      data-theme={displayTheme}
       data-material={material}
-      data-lang={lang}
+      data-lang={displayLang}
       data-thick={DEFAULT_THICKNESS}
       data-renderer={rendererState}
-      aria-label={t("app.consoleTitle")}
+      aria-label={tb("app.consoleTitle")}
     >
       <div className="console-shell" ref={shellRef}>
         <canvas ref={canvasRef} className="glass-canvas" aria-hidden="true" />
@@ -426,37 +486,43 @@ export default function ConsoleApp() {
             data-tauri-drag-region={maximized ? undefined : true}
           >
             <h1>
-              {t("app.consoleTitle")}
-              <span className="console-preview-badge">{t("app.previewBadge")}</span>
+              {onboardingMode
+                ? tb("installer.windowTitle")
+                : t("app.consoleTitle")}
+              <span className="console-preview-badge">
+                {tb("app.previewBadge")}
+              </span>
             </h1>
           </div>
-          <nav className="console-nav" aria-label={t("nav.aria")}>
-            <button
-              type="button"
-              className={`console-nav__item${page === "general" ? " is-active" : ""}`}
-              aria-current={page === "general" ? "page" : undefined}
-              onClick={() => setPage("general")}
-            >
-              <NavIcon name="general" />
-              <span>{t("nav.general")}</span>
-            </button>
-            <button
-              type="button"
-              className={`console-nav__item${page === "globe" ? " is-active" : ""}`}
-              aria-current={page === "globe" ? "page" : undefined}
-              onClick={() => setPage("globe")}
-            >
-              <NavIcon name="globe" />
-              <span>{t("nav.globe")}</span>
-            </button>
-          </nav>
+          {onboardingMode ? null : (
+            <nav className="console-nav" aria-label={t("nav.aria")}>
+              <button
+                type="button"
+                className={`console-nav__item${page === "general" ? " is-active" : ""}`}
+                aria-current={page === "general" ? "page" : undefined}
+                onClick={() => setPage("general")}
+              >
+                <NavIcon name="general" />
+                <span>{t("nav.general")}</span>
+              </button>
+              <button
+                type="button"
+                className={`console-nav__item${page === "globe" ? " is-active" : ""}`}
+                aria-current={page === "globe" ? "page" : undefined}
+                onClick={() => setPage("globe")}
+              >
+                <NavIcon name="globe" />
+                <span>{t("nav.globe")}</span>
+              </button>
+            </nav>
+          )}
           <div className="console-window-controls">
             <button
               type="button"
               className="console-window-btn"
-              aria-label={t("window.minimize")}
+              aria-label={tb("window.minimize")}
               title={
-                desktop ? t("window.minimize") : t("window.desktopOnly")
+                desktop ? tb("window.minimize") : tb("window.desktopOnly")
               }
               disabled={!desktop}
               onClick={minimize}
@@ -469,14 +535,14 @@ export default function ConsoleApp() {
               type="button"
               className="console-window-btn"
               aria-label={
-                maximized ? t("window.restore") : t("window.maximize")
+                maximized ? tb("window.restore") : tb("window.maximize")
               }
               title={
                 desktop
                   ? maximized
-                    ? t("window.restore")
-                    : t("window.maximize")
-                  : t("window.desktopOnly")
+                    ? tb("window.restore")
+                    : tb("window.maximize")
+                  : tb("window.desktopOnly")
               }
               disabled={!desktop}
               onClick={toggleMaximized}
@@ -492,8 +558,8 @@ export default function ConsoleApp() {
             <button
               type="button"
               className="console-window-btn"
-              aria-label={t("window.close")}
-              title={desktop ? t("window.close") : t("window.desktopOnly")}
+              aria-label={tb("window.close")}
+              title={desktop ? tb("window.close") : tb("window.desktopOnly")}
               disabled={!desktop}
               onClick={close}
             >
@@ -505,9 +571,29 @@ export default function ConsoleApp() {
         </div>
 
         <main
-          className={`console-content${page === "globe" ? " is-globe" : ""}`}
+          className={`console-content${page === "globe" ? " is-globe" : ""}${
+            onboardingMode ? " is-installer" : ""
+          }`}
         >
-            {page === "general" ? (
+            {onboardingMode ? (
+              <InstallerScreen
+                mode={onboardingMode}
+                controller={installer}
+                theme={displayTheme}
+                onThemeChange={setPreviewTheme}
+                language={displayLang}
+                onLanguageChange={(next) => {
+                  // 预览只改本页；live 写进设置，装完后总控台/地球页沿用。
+                  if (onboardingMode === "preview") {
+                    setPreviewLang(next);
+                    return;
+                  }
+                  void setLanguage(next);
+                }}
+                onExit={exitInstallerPreview}
+                onQuit={close}
+              />
+            ) : page === "general" ? (
               <div className="console-settings">
                 <div className="console-settings__head">
                   <p className="console-caption">{t("settings.caption")}</p>
@@ -683,6 +769,21 @@ export default function ConsoleApp() {
                       className="console-segmented--capsule"
                     />
                   </section>
+                  {import.meta.env.DEV ? (
+                    <section className="console-row console-row--mode">
+                      <div className="console-row__head">
+                        <h2>{t("installer.preview.rowTitle")}</h2>
+                        <p>{t("installer.preview.rowDesc")}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="console-dev-button"
+                        onClick={openInstallerPreview}
+                      >
+                        {t("installer.preview.open")}
+                      </button>
+                    </section>
+                  ) : null}
                 </div>
                 <p className="console-license">{t("license.font")}</p>
               </div>

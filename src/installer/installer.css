@@ -1,0 +1,618 @@
+/* 首次启动 · 素材安装。全部颜色取自 ConsoleApp.css 的主题 token，
+   只有陶红预览的 --classic-bg 补在 ConsoleApp.css 里。 */
+
+.installer-stage {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.installer-viewport {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 18px 24px 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.installer-viewport::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.installer-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.installer-viewport::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--scroll-thumb);
+}
+
+.installer-card {
+  width: min(640px, 100%);
+  /* margin:auto 而不是 flex 居中：卡片比视口高时 auto 边距收成 0，
+     顶部不会被裁掉，滚动条从卡片第一行开始。 */
+  margin: auto;
+  padding: 34px 36px 28px;
+  border: 1px solid var(--etch);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--seg-track) 80%, transparent);
+  box-shadow: 0 24px 80px var(--fallback-shadow);
+  backdrop-filter: blur(22px) saturate(1.08);
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+  animation: installer-card-in 240ms var(--ease);
+}
+
+@keyframes installer-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.installer-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--ink-3);
+}
+
+.installer-eyebrow__dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d84d56;
+}
+
+.installer-eyebrow__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 语言名用各语言的自称，不随界面语言翻译；窄窗口下先压缩 eyebrow 文字。 */
+.installer-lang {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--seg-track);
+  box-shadow: var(--track-shadow);
+  letter-spacing: 0;
+}
+
+.installer-lang__btn {
+  height: 22px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-3);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.installer-lang__btn:hover {
+  color: var(--ink);
+}
+
+.installer-lang__btn.is-active {
+  background: var(--seg-thumb);
+  color: var(--ink);
+  box-shadow: var(--seg-thumb-shadow);
+}
+
+.installer-lang__btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.installer-headline {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.installer-lead {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.installer-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 22px 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--etch);
+  border-radius: 14px;
+  background: var(--etch);
+}
+
+.installer-stat {
+  padding: 12px 14px;
+  background: var(--seg-thumb);
+}
+
+.installer-stat dt {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.installer-stat dd {
+  margin: 4px 0 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.installer-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.installer-source svg {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.installer-source__url {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installer-source__hash {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+}
+
+.installer-status {
+  margin-top: 22px;
+}
+
+.installer-progress {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--track);
+  box-shadow: var(--track-shadow);
+}
+
+.installer-progress__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  background: var(--ink);
+  transition: width 120ms linear;
+}
+
+.installer-progress.is-indeterminate .installer-progress__fill {
+  width: 32%;
+  animation: installer-slide 1.3s ease-in-out infinite;
+}
+
+@keyframes installer-slide {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(420%);
+  }
+}
+
+.installer-status__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.installer-license {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--etch);
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.installer-license p {
+  margin: 0;
+}
+
+.installer-checkline {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.installer-checkline input {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin: 1px 0 0;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.installer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.installer-btn {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.installer-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.installer-btn--primary {
+  border: 0;
+  background: var(--ink);
+  color: var(--fallback-a);
+}
+
+.installer-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.installer-btn--primary:active:not(:disabled) {
+  opacity: 0.82;
+}
+
+.installer-btn--ghost {
+  border: 1px solid var(--etch);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.installer-btn--ghost:hover:not(:disabled) {
+  background: var(--nav-hover);
+  color: var(--ink);
+}
+
+.installer-btn--ghost:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.installer-link {
+  height: 32px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.installer-link:hover {
+  color: var(--ink);
+}
+
+.installer-check {
+  width: 44px;
+  height: 44px;
+  margin-top: 20px;
+}
+
+.installer-check svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.installer-check circle {
+  stroke: var(--etch);
+  stroke-width: 1.5;
+}
+
+.installer-check path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: installer-check 420ms 120ms var(--ease) forwards;
+}
+
+@keyframes installer-check {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.installer-error {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, #d84d56 42%, var(--etch));
+  border-radius: 12px;
+  background: color-mix(in srgb, #d84d56 8%, transparent);
+}
+
+.installer-error__msg {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.installer-error__code {
+  margin: 4px 0 0;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, #d84d56 62%, var(--ink));
+}
+
+.installer-error__details {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.installer-error__details summary {
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.installer-error__details pre {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  max-height: 88px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--seg-thumb);
+  color: var(--ink-2);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.installer-footer {
+  margin: 24px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--etch);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+/* ---- 开发预览条：只在 DEV 构建里出现 ---- */
+
+.installer-preview {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 10px;
+  padding: 8px 16px 10px;
+  border-top: 1px dashed var(--etch);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+.installer-preview__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px dashed var(--etch);
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+}
+
+.installer-preview__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--seg-track);
+}
+
+.installer-chip {
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.installer-chip:hover {
+  color: var(--ink);
+}
+
+.installer-chip.is-active {
+  background: var(--seg-thumb);
+  color: var(--ink);
+  box-shadow: var(--seg-thumb-shadow);
+}
+
+.installer-preview__back {
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--etch);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.installer-preview__back:hover {
+  background: var(--nav-hover);
+  color: var(--ink);
+}
+
+@media (max-width: 680px) {
+  .installer-card {
+    width: 100%;
+  }
+}
+
+@media (max-height: 470px) {
+  .installer-viewport {
+    padding: 10px 16px 16px;
+  }
+
+  .installer-card {
+    padding: 22px 24px 20px;
+    border-radius: 18px;
+  }
+
+  .installer-eyebrow {
+    margin-bottom: 10px;
+  }
+
+  .installer-headline {
+    font-size: 23px;
+  }
+
+  .installer-lead {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .installer-stats {
+    margin-top: 14px;
+  }
+
+  .installer-stat {
+    padding: 9px 12px;
+  }
+
+  .installer-stat dd {
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .installer-license {
+    margin-top: 14px;
+    padding: 10px 12px;
+  }
+
+  .installer-actions {
+    margin-top: 16px;
+  }
+
+  .installer-footer {
+    margin-top: 16px;
+    padding-top: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .installer-card {
+    animation: none;
+  }
+
+  .installer-progress__fill {
+    transition: none;
+  }
+
+  .installer-progress.is-indeterminate .installer-progress__fill {
+    width: 100%;
+    opacity: 0.35;
+    animation: none;
+    transform: none;
+  }
+
+  .installer-check path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

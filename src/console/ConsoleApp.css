@@ -156,6 +156,11 @@
   --classic-bg: #0b0d10;
 }
 
+/* 陶红暂未对外暴露，只有首次启动预览会切到；经典材质也给它一个平底。 */
+.console-root[data-material="classic"][data-theme="red"] {
+  --classic-bg: #f6ece6;
+}
+
 .console-root[data-material="classic"] .console-shell {
   background: var(--classic-bg);
 }
@@ -437,6 +442,12 @@
   background: var(--scroll-thumb);
 }
 
+/* 首次启动：安装器自己负责居中与滚动（见 installer.css）。 */
+.console-content.is-installer {
+  padding: 0;
+  overflow: hidden;
+}
+
 .console-header {
   flex: 0 0 auto;
   padding-bottom: 18px;
@@ -500,6 +511,36 @@
   font-size: 11px;
   line-height: 16px;
   color: var(--ink-3);
+}
+
+/* 开发构建里的“首次启动界面”入口。 */
+.console-dev-button {
+  justify-self: end;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--etch);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.console-dev-button:hover {
+  background: var(--nav-hover);
+  color: var(--ink);
+}
+
+.console-dev-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.console-dev-button:active {
+  opacity: 0.72;
 }
 
 .console-segmented--capsule {
