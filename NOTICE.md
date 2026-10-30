@@ -14,7 +14,7 @@ Copyright 2026 JNGKZbird & Contributors
 
 ## 2. Spine Runtimes（`src/spine38/`，非 Apache-2.0）
 
-`src/spine38/` 是 Esoteric Software 的 Spine Runtimes（spine-ts 3.8）在本项目中的衍生/集成实现，与予愿安洁莉娜项目的 `spine38/` 同源。该目录整体按 **[Spine Runtimes License Agreement](https://esotericsoftware.com/spine-runtimes-license)** 使用，**不是 Apache-2.0**。
+`src/spine38/` 是 Esoteric Software 的 Spine Runtimes（spine-ts 3.8）在本项目中的衍生/集成实现，与予愿安洁莉娜项目的 `spine38/` 同源。该目录中源自 spine-ts 3.8 的部分按 **[Spine Runtimes License Agreement](https://esotericsoftware.com/spine-runtimes-license)** 使用，**不是 Apache-2.0**；其中 `webgl-renderer.ts` 为本项目自研的 WebGL 渲染器，不源自 spine-ts，按 Apache-2.0 使用。
 
 本项目持有有效的 **Spine Editor 许可（Spine Essential）**，并按 **[Spine Editor License Agreement 第 2 节](https://esotericsoftware.com/spine-editor-license)** 将 Spine Runtimes 集成进本产品。
 
@@ -40,7 +40,7 @@ Copyright 2026 JNGKZbird & Contributors
 
 予愿安洁莉娜中位于 `spine38/` 之外的原创代码采用 MIT（Copyright (c) 2026 AstrariaX & Contributors）。**本仓库未复制该部分代码**；其 MIT 原文仅作来源说明收录于 [LICENSES/MIT-YuYuan.txt](LICENSES/MIT-YuYuan.txt)，不覆盖本仓库。
 
-本作是独立的 Windows/Tauri 实现，不属于予愿安洁莉娜的 Windows / HarmonyOS / Android 三端。
+本作是与予愿安洁莉娜同源技术栈上的一次独立全新尝试，当前仅在 Windows 发布预览版。
 
 ## 5. 游戏素材（非开源，不随本仓库分发）
 
@@ -51,6 +51,8 @@ Copyright 2026 JNGKZbird & Contributors
 <https://github.com/JNGKZbird/Arknights-Desktop-Pets-Archive>
 
 素材仅供个人非商业使用；不得用于商业用途，不得损害版权方利益。如权利方提出要求，仓库所有者应停止分发并删除相关内容。
+
+本仓库 `media/` 下的 PNG 为软件运行截图，仅用于展示本软件界面与功能，不构成对游戏素材的分发或许可；截图中的角色与美术版权仍归上海鹰角网络有限公司所有。
 
 ## 6. 非官方声明
 

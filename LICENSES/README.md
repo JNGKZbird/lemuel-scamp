@@ -7,4 +7,4 @@
 - `MIT-YuYuan.txt` — 予愿安洁莉娜项目原创代码的 MIT 许可原文，仅作来源说明；本仓库未复制其 `spine38/` 之外的代码，本仓库自身按 Apache-2.0 发布。
 - `HarmonyOS-Sans-Fonts-License.txt` — 内置 HarmonyOS Sans SC 字体的许可原文。
 
-`src/spine38/` 按 Spine Runtimes License 使用，不是 Apache-2.0。完整范围见根目录 `NOTICE.md`。
+`src/spine38/` 中源自 spine-ts 3.8 的部分按 Spine Runtimes License 使用，不是 Apache-2.0；其中 `webgl-renderer.ts` 为本项目自研，按 Apache-2.0 使用。完整范围见根目录 `NOTICE.md`。

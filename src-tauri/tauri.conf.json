@@ -47,6 +47,11 @@
     "longDescription": "Lemuel Scamp is an unofficial Arknights desktop pet for Windows. Exusiai and Exusiai the New Covenant share one screen with independent activity levels, visibility and movement, a virtual-globe daily routine, and a WASD interaction mode.",
     "license": "Apache-2.0",
     "licenseFile": "../LICENSE",
+    "resources": {
+      "../LICENSE": "licenses/LICENSE",
+      "../NOTICE.md": "licenses/NOTICE.md",
+      "../LICENSES/": "licenses/"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
