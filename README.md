@@ -1,6 +1,6 @@
 # Lemuel Scamp · 蕾缪乐（能天使 / Exusiai）· 小淘气
 
-**明日方舟开源桌宠（非官方）· Arknights desktop pet · Windows 桌面端 · v0.1.0 Preview · [予愿安洁莉娜](https://github.com/JNGKZbird/Arknights-Angelina-Pet-YuYuan) 同源技术栈**
+**明日方舟开源桌宠（非官方）· Arknights desktop pet · Windows 桌面端 · v0.1.0 Preview · [予愿安洁莉娜桌宠（正式名：酸橙味的信）](https://github.com/JNGKZbird/Arknights-Angelina-Pet-YuYuan) 同源技术栈**
 
 **作者**：JNGKZbird
 
@@ -138,7 +138,7 @@ pnpm tauri build    # 构建安装包；当前会被构建守卫拒绝
 ## 技术
 
 - Tauri v2（2.12）+ React 19 + TypeScript + Vite 8；Windows WebView2。
-- Spine 3.8 骨骼解算：移植自官方 spine-ts 3.8，与予愿安洁莉娜的 `spine38` 实现同源；WebGL 渲染器为本项目自研。
+- Spine 3.8 骨骼解算：移植自官方 spine-ts 3.8，与予愿安洁莉娜桌宠（正式名：酸橙味的信）的 `spine38` 实现同源；WebGL 渲染器为本项目自研。
 - 虚拟地球：一块 canvas、一个全屏三角形与自研 WebGL1 着色器实时绘制球体、经纬网、晨昏线与 1600 颗星，不用 3D 模型、地球贴图或 3D 引擎；太阳与月亮位置由本地天文近似计算。
 - 代码规模：本仓库源码（TypeScript/TSX、样式与 Rust，不含字体与游戏素材）约 730 KB，其中约 170 KB 为 `src/spine38/` 的 Spine 3.8 运行时与自研 WebGL 渲染器。
 - 当前运行时读取 Spine 3.8 二进制 `.skel` 与单图集页；不直接读取 Live2D `.moc3`，也不是通用模型导入器。
@@ -160,7 +160,7 @@ pnpm tauri build    # 构建安装包；当前会被构建守卫拒绝
 - **本项目原创代码**：Apache-2.0，见 [LICENSE](LICENSE)。
 - **`src/spine38/`**：官方 spine-ts 3.8 的衍生/集成，按 Spine Runtimes License 使用，**不是 Apache-2.0**。本项目持有有效的 Spine Editor 许可（Spine Essential）；终端用户直接使用无需购买；第三方原样分发须保留 2025 版许可原文；修改、适配或衍生需要自己的 Spine Editor 许可。原文见 [LICENSES/](LICENSES/)。
 - **内置字体**：HarmonyOS Sans SC（华为官方 5.0.1 安装包中的可变字体，未修改），版权归华为，按 HarmonyOS Sans 字体许可使用；许可见 [LICENSES/HarmonyOS-Sans-Fonts-License.txt](LICENSES/HarmonyOS-Sans-Fonts-License.txt)。
-- **予愿安洁莉娜**：其原创、且位于 `spine38/` 之外的代码为 MIT；本仓库未复制该部分代码。本作是独立的 Windows/Tauri 实现，不是予愿安洁莉娜的第四端。
+- **予愿安洁莉娜桌宠（正式名：酸橙味的信）**：其原创、且位于 `spine38/` 之外的代码为 MIT；本仓库未复制该部分代码。本作是独立的 Windows/Tauri 实现，不是予愿安洁莉娜桌宠的第四端。
 - **游戏素材**：《明日方舟》角色、Spine 模型、贴图等版权归上海鹰角网络有限公司所有，不适用上述任何许可，也不随本仓库分发；仅供个人非商业使用。权利方如提出要求，应停止分发并删除相关内容。
 - **非官方声明**：本项目与上海鹰角网络有限公司、Esoteric Software 均无官方合作或背书关系。
 
@@ -172,7 +172,7 @@ pnpm tauri build    # 构建安装包；当前会被构建守卫拒绝
 
 ## 致谢
 
-- [予愿安洁莉娜](https://github.com/JNGKZbird/Arknights-Angelina-Pet-YuYuan)：同源 Spine 3.8 技术栈与素材档案库。
+- [予愿安洁莉娜桌宠（正式名：酸橙味的信）](https://github.com/JNGKZbird/Arknights-Angelina-Pet-YuYuan)：同源 Spine 3.8 技术栈与素材档案库。
 - [Esoteric Software](https://esotericsoftware.com/)：Spine 与官方 spine-ts 运行时。
 - [华为 HarmonyOS Sans](https://developer.harmonyos.com/)：内置字体。
 - Tauri、React、Vite 与所有依赖的维护者。
