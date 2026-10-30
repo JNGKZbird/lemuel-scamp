@@ -89,20 +89,198 @@ fn raise_overlay(app: tauri::AppHandle) -> Result<(), String> {
 /// （只有一只宠物）——判定只把 COMPLEXREGION 排除在外，且遮挡矩形取的是
 /// GetWindowRect 整窗。结果就是下面的 B 站/浏览器被判为“被遮挡”：画面停止
 /// 绘制，声音仍在播放。
+/// 把应用窗口变成“真正无边框”。
+///
+/// tao 建窗时不看 decorations，一律带 WS_CAPTION|WS_SYSMENU（tao window_state.rs 的
+/// to_window_styles 无条件加上），只是用 WM_NCCALCSIZE 压非客户区让标题栏“看不见”。
+/// 样式位仍在，窗口一旦被激活（点住宠物拖动、或点一下总控台），DWM 照样按这些位把
+/// 标题栏画在窗口顶部：标题文字 + 最小化/最大化/关闭三连。桌宠覆盖层铺满整屏，那条就
+/// 顶在屏幕上沿；总控台是 1066×729 的玻璃窗，那条就横在总控台顶上、宠物脚边。
+/// 所以样式位要真的剥掉，不能只靠 NCCALCSIZE 遮。
+///
+/// tao 的 apply_diff 在任何窗口标志变化（show/hide 等）时用 to_window_styles() 重算
+/// 整份样式写回，WS_CAPTION 会复活，所以轮询线程每 8ms 复查一次。
+#[cfg(windows)]
+#[derive(Clone, Copy, PartialEq)]
+enum FrameMode {
+    /// 桌宠窗（覆盖层）：连缩放边框一起剥，不进任务栏。
+    Pet,
+    /// 总控台：只剥标题栏和系统菜单，保留 WS_THICKFRAME，窗口四边仍可拖拽缩放。
+    Panel,
+}
+
+#[cfg(windows)]
+fn enforce_borderless(hwnd: windows::Win32::Foundation::HWND, mode: FrameMode) -> bool {
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GetWindowLongPtrW, SetWindowLongPtrW, SetWindowPos, GWL_EXSTYLE, GWL_STYLE,
+        SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOOWNERZORDER, SWP_NOSIZE,
+        SWP_NOZORDER, WS_CAPTION, WS_EX_TOOLWINDOW, WS_EX_WINDOWEDGE, WS_MAXIMIZEBOX,
+        WS_MINIMIZEBOX, WS_SYSMENU, WS_THICKFRAME,
+    };
+
+    // 标题栏的“本体”是 WS_CAPTION；WS_SYSMENU 让它带上系统菜单和三连按钮。
+    const CAPTION_BITS: isize = (WS_CAPTION.0 | WS_SYSMENU.0) as isize;
+    let frame_bits = match mode {
+        FrameMode::Pet => {
+            CAPTION_BITS
+                | WS_THICKFRAME.0 as isize
+                | WS_MINIMIZEBOX.0 as isize
+                | WS_MAXIMIZEBOX.0 as isize
+        }
+        FrameMode::Panel => CAPTION_BITS | WS_MINIMIZEBOX.0 as isize | WS_MAXIMIZEBOX.0 as isize,
+    };
+    unsafe {
+        let mut changed = false;
+        let style = GetWindowLongPtrW(hwnd, GWL_STYLE);
+        // 句柄已经销毁的窗口读出来是 0，别在这儿空转。
+        if style == 0 {
+            return false;
+        }
+        let stripped = style & !frame_bits;
+        if stripped != style {
+            SetWindowLongPtrW(hwnd, GWL_STYLE, stripped);
+            changed = true;
+        }
+        // WS_EX_WINDOWEDGE 是那条凸起的外边缘（系统会画一道亮线），一并去掉；
+        // WS_EX_TOOLWINDOW 是 Chromium 遮挡判定的豁免位。这两条只管桌宠窗：总控台要留在
+        // 任务栏，而且它的 ex-style 写不掉（系统会立刻补回 WINDOWEDGE），硬写就是每 8ms
+        // 打一次的无效循环。
+        if mode == FrameMode::Pet {
+            let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+            let wanted = (ex | WS_EX_TOOLWINDOW.0 as isize) & !(WS_EX_WINDOWEDGE.0 as isize);
+            if wanted != ex {
+                SetWindowLongPtrW(hwnd, GWL_EXSTYLE, wanted);
+                changed = true;
+            }
+        }
+        if changed {
+            let _ = SetWindowPos(
+                hwnd,
+                None,
+                0,
+                0,
+                0,
+                0,
+                SWP_FRAMECHANGED
+                    | SWP_NOMOVE
+                    | SWP_NOSIZE
+                    | SWP_NOZORDER
+                    | SWP_NOOWNERZORDER
+                    | SWP_NOACTIVATE,
+            );
+        }
+        changed
+    }
+}
+
+/// 拦截非客户区绘制。
+///
+/// 光把 WS_CAPTION 剥掉还不够：窗口被激活时系统会送 WM_NCACTIVATE，DefWindowProc
+/// 收到后仍按“这是个有标题栏的窗口”把标题栏补画一遍（Win11 下画的是强调色半透明条，
+/// 也就是用户看到的蓝带）。GLFW 对无边框窗口做的是同一件事：这两个消息自己答，
+/// 不往下传——WM_NCACTIVATE 回 TRUE 表示“已处理”，WM_NCPAINT 回 0 表示“不用画”。
+#[cfg(windows)]
+static NONCLIENT_GUARDED: std::sync::OnceLock<std::sync::Mutex<std::collections::HashSet<isize>>> =
+    std::sync::OnceLock::new();
+
+#[cfg(windows)]
+unsafe extern "system" fn nonclient_guard_proc(
+    hwnd: windows::Win32::Foundation::HWND,
+    msg: u32,
+    wparam: windows::Win32::Foundation::WPARAM,
+    lparam: windows::Win32::Foundation::LPARAM,
+    _id: usize,
+    _data: usize,
+) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::Foundation::LRESULT;
+    use windows::Win32::UI::Shell::DefSubclassProc;
+    use windows::Win32::UI::WindowsAndMessaging::{WM_NCACTIVATE, WM_NCPAINT};
+
+    match msg {
+        WM_NCACTIVATE => LRESULT(1),
+        WM_NCPAINT => LRESULT(0),
+        _ => unsafe { DefSubclassProc(hwnd, msg, wparam, lparam) },
+    }
+}
+
+#[cfg(windows)]
+fn install_nonclient_guard(hwnd: windows::Win32::Foundation::HWND) {
+    use windows::Win32::UI::Shell::SetWindowSubclass;
+
+    let slot = NONCLIENT_GUARDED.get_or_init(|| {
+        std::sync::Mutex::new(std::collections::HashSet::new())
+    });
+    let Ok(mut seen) = slot.lock() else { return };
+    if !seen.insert(hwnd.0 as isize) {
+        return;
+    }
+    unsafe {
+        let _ = SetWindowSubclass(hwnd, Some(nonclient_guard_proc), 0x5CA1AB1E, 0);
+    }
+}
+
+/// 诊断日志：记录覆盖层样式被写回、以及前台状态下 DWM 对标题栏的看法。
+/// 写临时目录，单文件，超 256KB 自清。定位完成后可整体删除。
+#[cfg(windows)]
+fn borderless_log(msg: &str) {
+    use std::io::Write;
+
+    let mut path = std::env::temp_dir();
+    path.push("lemuel-scamp-borderless.log");
+    if let Ok(meta) = std::fs::metadata(&path) {
+        if meta.len() > 256 * 1024 {
+            let _ = std::fs::remove_file(&path);
+        }
+    }
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+    if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
+        let _ = writeln!(file, "{} {}", stamp, msg);
+    }
+}
+
 #[cfg(windows)]
 #[tauri::command]
 fn prepare_overlay_window(app: tauri::AppHandle) -> Result<(), String> {
-    use windows::Win32::UI::WindowsAndMessaging::{
-        GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_TOOLWINDOW,
+    use windows::Win32::Graphics::Dwm::{
+        DwmSetWindowAttribute, DWMWA_BORDER_COLOR, DWMWA_COLOR_NONE, DWMWA_NCRENDERING_POLICY,
+        DWMWA_WINDOW_CORNER_PREFERENCE, DWMNCRP_DISABLED, DWMNCRENDERINGPOLICY, DWMWCP_DONOTROUND,
+        DWM_WINDOW_CORNER_PREFERENCE,
     };
 
     let window = app
         .get_webview_window("overlay")
         .ok_or_else(|| "overlay window missing".to_string())?;
     let hwnd = window.hwnd().map_err(|err| err.to_string())?;
+    enforce_borderless(hwnd, FrameMode::Pet);
+    install_nonclient_guard(hwnd);
     unsafe {
-        let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, ex | WS_EX_TOOLWINDOW.0 as isize);
+        // 连 DWM 的非客户区渲染一起关掉：这条窗口自己一块都不会画。
+        let policy = DWMNCRP_DISABLED;
+        let _ = DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_NCRENDERING_POLICY,
+            &policy as *const _ as *const std::ffi::c_void,
+            std::mem::size_of::<DWMNCRENDERINGPOLICY>() as u32,
+        );
+        // Win11 对无边框窗口仍会画强调色边框和圆角；覆盖层铺满整屏，那道边线就贴着
+        // 屏幕四边露出来。明确关掉，与总控台最大化时用的是同一套属性。
+        let border = DWMWA_COLOR_NONE;
+        let _ = DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_BORDER_COLOR,
+            &border as *const _ as *const std::ffi::c_void,
+            std::mem::size_of::<u32>() as u32,
+        );
+        let corner = DWMWCP_DONOTROUND;
+        let _ = DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_WINDOW_CORNER_PREFERENCE,
+            &corner as *const _ as *const std::ffi::c_void,
+            std::mem::size_of::<DWM_WINDOW_CORNER_PREFERENCE>() as u32,
+        );
     }
     raise_overlay(app)
 }
@@ -126,7 +304,10 @@ fn set_click_through(hwnd: windows::Win32::Foundation::HWND, ignore: bool) -> bo
     }
 }
 
-/// 把 CSS 像素盒子换算成物理像素矩形；量化到整数像素，逐帧浮点抖动不会触发重设区域。
+/// 区域矩形对齐到的物理像素栅格：空闲动画的亚像素抖动不会再逐帧触发重设区域。
+const REGION_GRID_PX: i32 = 8;
+
+/// 把 CSS 像素盒子换算成物理像素矩形；向外对齐到栅格，保证区域始终包住内容。
 #[cfg(windows)]
 fn boxes_to_px(rects: &[[f64; 4]], scale: f64) -> Vec<[i32; 4]> {
     let mut out = Vec::with_capacity(rects.len());
@@ -138,7 +319,9 @@ fn boxes_to_px(rects: &[[f64; 4]], scale: f64) -> Vec<[i32; 4]> {
         if x1 <= x0 || y1 <= y0 {
             continue;
         }
-        out.push([x0, y0, x1, y1]);
+        let snap_down = |v: i32| v.div_euclid(REGION_GRID_PX) * REGION_GRID_PX;
+        let snap_up = |v: i32| (v + REGION_GRID_PX - 1).div_euclid(REGION_GRID_PX) * REGION_GRID_PX;
+        out.push([snap_down(x0), snap_down(y0), snap_up(x1), snap_up(y1)]);
     }
     out
 }
@@ -167,8 +350,11 @@ fn apply_input_region(hwnd: windows::Win32::Foundation::HWND, rects: &[[i32; 4]]
             let _ = DeleteObject(part.into());
         }
         // 空矩形列表 = 空区域：没有任何可见内容时整窗不参与命中，等价于全穿透。
+        // bRedraw 必须是 FALSE：TRUE 会让系统重画整窗并给子窗口发 WM_ERASEBKGND，
+        // 而 WebView2 的 Chrome_WidgetWin_0 类背景刷是纯黑——透明页面上会闪出黑框。
+        // 页面本身由 WebView2 逐帧合成，不依赖这次系统重画。
         // 成功时区域所有权归系统，不能再 DeleteObject。
-        let ok = SetWindowRgn(hwnd, Some(region), true) != 0;
+        let ok = SetWindowRgn(hwnd, Some(region), false) != 0;
         if !ok {
             let _ = DeleteObject(region.into());
         }
@@ -560,6 +746,9 @@ pub fn run() {
                 let mut cached: Vec<CachedWindow> = Vec::new();
                 // 已生效的区域（物理像素），内容相同就不再碰 SetWindowRgn。
                 let mut last: HashMap<String, Vec<[i32; 4]>> = HashMap::new();
+                // 写了样式也不生效的窗口句柄（系统会立刻把位补回来），记下来不再重试。
+                #[cfg(windows)]
+                let mut stuck: HashSet<isize> = HashSet::new();
                 let mut last_rev = u64::MAX;
                 let mut last_refresh: Option<Instant> = None;
                 loop {
@@ -571,6 +760,43 @@ pub fn run() {
                     let refresh_due = last_refresh
                         .map(|t| t.elapsed() >= Duration::from_millis(500))
                         .unwrap_or(true);
+                    // 每个 tick（8ms）复查所有窗口的样式。tao 任何一次窗口标志变动都会
+                    // 用 to_window_styles() 把整份样式重算写回，WS_CAPTION 跟着复活；
+                    // 500ms 的兜底太慢，写回后标题栏会亮足半秒。每个窗口每轮两次
+                    // GetWindowLongPtrW，代价可以忽略。
+                    #[cfg(windows)]
+                    for c in &cached {
+                        use windows::Win32::UI::WindowsAndMessaging::{
+                            GetWindowLongPtrW, GWL_EXSTYLE, GWL_STYLE,
+                        };
+                        let mode = if c.label == "console" {
+                            FrameMode::Panel
+                        } else {
+                            FrameMode::Pet
+                        };
+                        let hwnd = windows::Win32::Foundation::HWND(c.hwnd as *mut core::ffi::c_void);
+                        // 激活时补画标题栏的是 WM_NCACTIVATE 的默认处理，先按住它。
+                        install_nonclient_guard(hwnd);
+                        if stuck.contains(&c.hwnd) {
+                            continue;
+                        }
+                        let style_before = unsafe { GetWindowLongPtrW(hwnd, GWL_STYLE) };
+                        let ex_before = unsafe { GetWindowLongPtrW(hwnd, GWL_EXSTYLE) };
+                        if enforce_borderless(hwnd, mode) {
+                            let style_after = unsafe { GetWindowLongPtrW(hwnd, GWL_STYLE) };
+                            let ex_after = unsafe { GetWindowLongPtrW(hwnd, GWL_EXSTYLE) };
+                            if style_after == style_before && ex_after == ex_before {
+                                // 写了也不生效：记下来别再空转。
+                                stuck.insert(c.hwnd);
+                                borderless_log(&format!("STUCK {}", c.label));
+                            } else {
+                                borderless_log(&format!(
+                                    "RESTRIP {} style 0x{:X}->0x{:X} ex 0x{:X}->0x{:X}",
+                                    c.label, style_before, style_after, ex_before, ex_after
+                                ));
+                            }
+                        }
+                    }
                     // 没有任何新内容、也没到刷新点：这一轮什么都不做。
                     if rev == last_rev && !refresh_due {
                         continue;
